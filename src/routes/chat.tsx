@@ -10,9 +10,9 @@ import { IntentCTA } from "@/components/QuickExit";
 export const Route = createFileRoute("/chat")({
   head: () => ({
     meta: [
-      { title: "Consulta anónima — Brújula" },
+      { title: "Consulta anónima — Chia" },
       { name: "description", content: "Chatea de forma anónima con un orientador de salud sexual con IA." },
-      { property: "og:title", content: "Consulta anónima — Brújula" },
+      { property: "og:title", content: "Consulta anónima — Chia" },
       { property: "og:description", content: "Resuelve dudas de salud sexual sin registro." },
     ],
   }),
@@ -59,7 +59,7 @@ function Chat() {
       <header className="flex items-center gap-2 border-b border-border px-4 py-4 pr-44">
         <Link to="/" aria-label="Volver"><ChevronLeft className="h-5 w-5 text-muted-foreground" /></Link>
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Compass className="h-4 w-4" /></div>
-        <div><p className="font-semibold leading-none text-foreground">Brújula</p><p className="text-xs text-muted-foreground">IA educativa · anónima</p></div>
+        <div><p className="font-semibold leading-none text-foreground">Chia</p><p className="text-xs text-muted-foreground">IA educativa · anónima</p></div>
       </header>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
@@ -86,7 +86,7 @@ function Chat() {
             {crisisAt.has(m.id) && <CrisisCards />}
           </div>
         ))}
-        {status === "submitted" && <p className="animate-pulse text-sm text-muted-foreground">Brújula está escribiendo…</p>}
+        {status === "submitted" && <p className="animate-pulse text-sm text-muted-foreground">Chia está escribiendo…</p>}
         {error && <p className="text-sm text-destructive">No pudimos responder ahora. Intenta de nuevo en un momento.</p>}
         {status === "ready" && messages.length >= 4 && <IntentCTA source="chat" />}
         <div ref={endRef} />

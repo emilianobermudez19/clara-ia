@@ -5,9 +5,9 @@ import { BottomNav } from "@/components/QuickExit";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Brújula — Salud sexual anónima y sin juicios" },
+      { title: "Chia — Salud sexual anónima y sin juicios" },
       { name: "description", content: "Orientación de salud sexual con IA, anónima y gratuita, pensada para México." },
-      { property: "og:title", content: "Brújula — Salud sexual anónima y sin juicios" },
+      { property: "og:title", content: "Chia — Salud sexual anónima y sin juicios" },
       { property: "og:description", content: "Pregunta lo que quieras sobre salud sexual, sin registro y sin juicios." },
     ],
   }),

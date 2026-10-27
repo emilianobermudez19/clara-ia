@@ -5,9 +5,9 @@ import { BottomNav, IntentCTA } from "@/components/QuickExit";
 export const Route = createFileRoute("/aprende")({
   head: () => ({
     meta: [
-      { title: "Aprende — Guías, mitos y ciencia | Brújula" },
+      { title: "Aprende — Guías, mitos y ciencia | Chia" },
       { name: "description", content: "Guías paso a paso, mitos y realidades y divulgación científica sobre salud sexual." },
-      { property: "og:title", content: "Aprende — Guías, mitos y ciencia | Brújula" },
+      { property: "og:title", content: "Aprende — Guías, mitos y ciencia | Chia" },
       { property: "og:description", content: "Información confiable y breve sobre salud sexual en México." },
     ],
   }),

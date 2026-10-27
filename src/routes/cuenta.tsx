@@ -3,10 +3,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/cuenta")({
   head: () => ({
     meta: [
-      { title: "Cuenta opcional — Brújula" },
-      { name: "description", content: "Las cuentas en Brújula son opcionales; puedes usar todo de forma anónima." },
-      { property: "og:title", content: "Cuenta opcional — Brújula" },
-      { property: "og:description", content: "Usa Brújula sin registrarte." },
+      { title: "Cuenta opcional — Chia" },
+      { name: "description", content: "Las cuentas en Chia son opcionales; puedes usar todo de forma anónima." },
+      { property: "og:title", content: "Cuenta opcional — Chia" },
+      { property: "og:description", content: "Usa Chia sin registrarte." },
     ],
   }),
   component: () => (

@@ -79,10 +79,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Brújula — Salud sexual anónima" },
+      { title: "Chia — Salud sexual anónima" },
       { name: "description", content: "Orientación de salud sexual con IA, anónima y sin juicios." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Brújula — Salud sexual anónima" },
+      { property: "og:title", content: "Chia — Salud sexual anónima" },
       { property: "og:description", content: "Orientación de salud sexual con IA, anónima y sin juicios." },
       { name: "referrer", content: "no-referrer" },
       { property: "og:type", content: "website" },
