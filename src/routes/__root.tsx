@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { QuickExit } from "../components/QuickExit";
+import { Header } from "../components/Header";
+import { I18nProvider } from "../lib/i18n";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -79,11 +81,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Chia — Salud sexual anónima" },
-      { name: "description", content: "Orientación de salud sexual con IA, anónima y sin juicios." },
+      { title: "Chia — Anonymous sexual health" },
+      { name: "description", content: "Anonymous, judgment-free AI sexual health guidance. Orientación de salud sexual con IA, anónima y sin juicios." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Chia — Salud sexual anónima" },
-      { property: "og:description", content: "Orientación de salud sexual con IA, anónima y sin juicios." },
+      { property: "og:title", content: "Chia — Anonymous sexual health" },
+      { property: "og:description", content: "Anonymous, judgment-free AI sexual health guidance, in Spanish and English." },
       { name: "referrer", content: "no-referrer" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -107,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" className="dark">
       <head>
         <HeadContent />
       </head>
@@ -124,9 +126,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <QuickExit />
-      <Outlet />
+      <I18nProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Header />
+        <QuickExit />
+        <Outlet />
+      </I18nProvider>
     </QueryClientProvider>
   );
 }
