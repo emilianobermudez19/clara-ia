@@ -42,7 +42,7 @@ npm pkg get scripts
 # 4. Instala, prueba y levanta
 npm install
 npm test                      # vitest: crisis, países, modo, rutas
-cp .env.example .env          # pon LOVABLE_API_KEY para que el chat responda
+cp .env.example .env          # opcional: sin claves el chat funciona en modo demostración
 npm run dev                   # abre la URL que imprime (por defecto http://localhost:5173 o la que indique Vite)
 ```
 

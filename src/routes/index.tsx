@@ -1,8 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight, ChevronRight, Lock, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/QuickExit";
+import { Illo } from "@/components/Illustrations";
+import { GUIDES, MYTHS } from "@/content/guides";
 import { useI18n } from "@/lib/i18n";
+import { readVault } from "@/lib/vault";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,61 +19,102 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+// Panel de bienvenida: una acción principal (preguntar), contenido del día y tu espacio.
+// La navegación entre secciones vive solo en la barra inferior.
 function Index() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  // Valores que dependen del reloj o del dispositivo: se calculan en el navegador para no desincronizar el SSR.
+  const [greet, setGreet] = useState("");
+  const [mythIdx, setMythIdx] = useState(0);
+  const [hasVault, setHasVault] = useState(false);
+  const [reveal, setReveal] = useState(false);
+
+  useEffect(() => {
+    const h = new Date().getHours();
+    setGreet(h < 12 ? t.greetMorning : h < 19 ? t.greetAfternoon : t.greetEvening);
+    setMythIdx(Math.floor(Date.now() / 86_400_000) % MYTHS.length);
+    setHasVault(!!readVault());
+  }, [t]);
+
   const ask = (text: string) => {
     if (!text.trim()) return;
     navigate({ to: "/chat", search: { q: text.trim() } as never });
   };
+  const myth = MYTHS[mythIdx];
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 px-5 pb-32 pt-24">
-      <div className="space-y-2">
-        <h1 className="font-display text-[30px] leading-tight text-foreground">{t.homeTitle}</h1>
-        <p className="text-base text-muted-foreground">{t.homeSub}</p>
-      </div>
-
-      <form
-        onSubmit={(e) => { e.preventDefault(); ask(q); }}
-        className="flex min-h-14 items-center gap-2 rounded-full border-[1.5px] border-input bg-card pl-5 pr-2"
-      >
-        <label htmlFor="home-ask" className="sr-only">{t.homeAskPlaceholder}</label>
-        <input
-          id="home-ask"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t.homeAskPlaceholder}
-          className="min-w-0 flex-1 bg-transparent text-[17px] text-foreground outline-none placeholder:text-muted-foreground"
-        />
-        <button type="submit" aria-label={t.homeAskSend} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <ArrowRight className="h-5 w-5" />
-        </button>
-      </form>
-
-      <section className="space-y-2.5">
-        <h2 className="text-sm font-bold text-muted-foreground">{t.homePopular}</h2>
-        <div className="flex flex-wrap gap-2">
+    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-7 px-5 pb-32 pt-24">
+      <section className="space-y-4 rounded-[28px] bg-primary p-5 text-primary-foreground">
+        <div className="space-y-1">
+          <p className="min-h-5 text-sm font-semibold opacity-80">{greet}</p>
+          <h1 className="font-display text-[28px] leading-tight">{t.homeTitle}</h1>
+          <p className="flex items-center gap-1.5 text-sm opacity-90"><ShieldCheck className="h-4 w-4" /> {t.dashAnonSub}</p>
+        </div>
+        <form onSubmit={(e) => { e.preventDefault(); ask(q); }} className="flex min-h-14 items-center gap-2 rounded-full bg-card pl-5 pr-1.5">
+          <label htmlFor="home-ask" className="sr-only">{t.homeAskPlaceholder}</label>
+          <input
+            id="home-ask"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t.homeAskPlaceholder}
+            className="min-w-0 flex-1 bg-transparent text-[17px] text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          <button type="submit" aria-label={t.homeAskSend} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <ArrowRight className="h-5 w-5" />
+          </button>
+        </form>
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
           {t.homeChips.map((c) => (
-            <button key={c} onClick={() => ask(c)} className="min-h-11 rounded-full bg-secondary px-4 text-[15px] font-medium text-secondary-foreground">
+            <button key={c} onClick={() => ask(c)} className="min-h-10 shrink-0 rounded-full bg-primary-foreground/15 px-4 text-sm font-semibold">
               {c}
             </button>
           ))}
         </div>
       </section>
 
-      <Link to="/aprende" className="flex items-center gap-4 rounded-[20px] border border-border bg-card p-4">
-        <svg viewBox="0 0 150 110" aria-hidden="true" className="h-[76px] w-[76px] shrink-0 rounded-2xl bg-secondary">
-          <rect x="45" y="22" width="60" height="60" rx="10" fill="#FFFFFF" stroke="#5A3E85" strokeWidth="3" />
-          <circle cx="75" cy="52" r="16" fill="none" stroke="#CDB8E3" strokeWidth="4" />
-          <path d="M20 96 C24 70 34 60 50 56 L56 74 C46 80 40 88 38 100 Z" fill="#C99A7A" />
-          <path d="M130 96 C126 70 116 60 100 56 L94 74 C104 80 110 88 112 100 Z" fill="#8A5C44" />
-        </svg>
-        <span className="flex flex-col gap-1">
-          <span className="text-[13px] font-semibold text-primary">{t.homeGuideTag}</span>
-          <span className="text-[17px] font-bold leading-snug text-foreground">{t.homeGuideTitle}</span>
+      <section className="space-y-3">
+        <h2 className="text-lg font-bold text-foreground">{t.dashGuides}</h2>
+        <div className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+          {GUIDES.map((g) => (
+            <Link
+              key={g.id}
+              to="/aprende"
+              hash={g.id}
+              className="flex w-44 shrink-0 snap-start flex-col gap-3 rounded-[20px] border border-border bg-card p-3"
+            >
+              {g.illos?.[0] && <Illo name={g.illos[0]} className="h-24 w-full rounded-2xl bg-secondary" />}
+              <span className="text-xs font-semibold text-primary">{t.minRead(g.min)}</span>
+              <span className="text-base font-bold leading-snug text-foreground">{g.t[lang]}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {myth && (
+        <section className="rounded-[20px] border border-border bg-card p-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-primary">{t.dashMyth}</p>
+          <p className="mt-1.5 text-[17px] font-semibold leading-snug text-foreground">{myth.m[lang]}</p>
+          {reveal ? (
+            <p className="mt-3 rounded-2xl bg-secondary p-3 text-base text-secondary-foreground">{myth.r[lang]}</p>
+          ) : (
+            <button onClick={() => setReveal(true)} className="mt-3 min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground">
+              {t.dashMythReveal}
+            </button>
+          )}
+        </section>
+      )}
+
+      <Link to="/cuenta" className="flex items-center gap-4 rounded-[20px] border border-border bg-card p-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
+          <Lock className="h-5 w-5" />
         </span>
+        <span className="flex flex-1 flex-col gap-0.5">
+          <span className="text-base font-bold text-foreground">{hasVault ? t.dashSpaceOpen : t.dashSpaceNew}</span>
+          <span className="text-sm text-muted-foreground">{hasVault ? t.dashSpaceOpenSub : t.dashSpaceNewSub}</span>
+        </span>
+        <ChevronRight className="h-5 w-5 text-muted-foreground" />
       </Link>
 
       <button onClick={() => ask(t.homeTestsTitle)} className="flex items-center justify-between rounded-[20px] bg-accent px-5 py-4 text-left">
@@ -81,7 +125,6 @@ function Index() {
         <ChevronRight className="h-5 w-5 text-accent-foreground" />
       </button>
 
-      <Link to="/cuenta" className="text-center text-sm text-muted-foreground underline">{t.homeAccount}</Link>
       <BottomNav active="inicio" />
     </main>
   );

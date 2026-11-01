@@ -1,13 +1,15 @@
-import { X } from "lucide-react";
+import { X, Home, MessageCircle, BookOpen, UserRound } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { COUNTRIES, type IntentChoice } from "@/lib/countries";
 
 export function quickExit() {
   try { sessionStorage.clear(); } catch { /* noop */ }
-  // Borra también las preferencias guardadas (idioma, tema) para no dejar rastro de la visita.
+  // Borra también las preferencias guardadas (idioma, tema, modo) para no dejar rastro de la visita.
+  // La ficha cifrada ("chia-vault") se conserva: sin el PIN es ilegible, y borrarla haría perder datos médicos.
   try {
-    Object.keys(localStorage).filter((k) => k.startsWith("chia-")).forEach((k) => localStorage.removeItem(k));
+    Object.keys(localStorage).filter((k) => k.startsWith("chia-") && k !== "chia-vault").forEach((k) => localStorage.removeItem(k));
   } catch { /* noop */ }
   window.location.replace("https://www.google.com/search?q=weather+today");
 }
@@ -25,21 +27,33 @@ export function QuickExit() {
   );
 }
 
-export function BottomNav({ active }: { active: "inicio" | "chat" | "aprende" }) {
+export function BottomNav({ active }: { active: "inicio" | "chat" | "aprende" | "cuenta" }) {
   const { t } = useI18n();
   const items = [
-    { to: "/", label: t.navHome, key: "inicio" },
-    { to: "/chat", label: t.navChat, key: "chat" },
-    { to: "/aprende", label: t.navLearn, key: "aprende" },
+    { to: "/", label: t.navHome, key: "inicio", Icon: Home },
+    { to: "/chat", label: t.navChat, key: "chat", Icon: MessageCircle },
+    { to: "/aprende", label: t.navLearn, key: "aprende", Icon: BookOpen },
+    { to: "/cuenta", label: t.navSpace, key: "cuenta", Icon: UserRound },
   ] as const;
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-md justify-around py-2">
-        {items.map((i) => (
-          <a key={i.key} href={i.to} className={`px-4 py-2 text-sm ${active === i.key ? "font-semibold text-primary" : "text-muted-foreground"}`}>
-            {i.label}
-          </a>
-        ))}
+    <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <div className="mx-auto grid max-w-md grid-cols-4">
+        {items.map(({ to, label, key, Icon }) => {
+          const on = active === key;
+          return (
+            <Link
+              key={key}
+              to={to}
+              aria-current={on ? "page" : undefined}
+              className={`flex min-h-14 flex-col items-center justify-center gap-1 text-xs ${on ? "font-bold text-primary" : "font-medium text-muted-foreground"}`}
+            >
+              <span className={`flex h-7 w-12 items-center justify-center rounded-full ${on ? "bg-secondary" : ""}`}>
+                <Icon className="h-5 w-5" />
+              </span>
+              {label}
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

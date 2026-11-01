@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, type UIMessage } from "ai";
-import { createResponsesCall } from "@/server/ai/responses";
+import { pickProvider } from "@/server/ai/providers";
 import { modeInstruction } from "@/lib/mode";
 
 const SYSTEM = `You are "Chia", an educational sexual health guide for an international audience.
@@ -13,20 +13,25 @@ const SYSTEM = `You are "Chia", an educational sexual health guide for an intern
 - If you detect crisis, self-harm, violence or abuse: drop the casual tone, validate, prioritize safety, suggest calling the local emergency number and visiting findahelpline.com to find official helplines in their country.
 - Keep answers short (max ~180 words), with bullet points when helpful.`;
 
-export const Route = createFileRoute("/api/chat")({
+export export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = process.env['LOVABLE_API_KEY'];
-        if (!apiKey) return new Response("Falta configuración de IA", { status: 500 });
         const { messages, mode } = (await request.json()) as { messages: UIMessage[]; mode?: unknown };
-        const call = createResponsesCall(
-          request,
-          { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
-          await convertToModelMessages(messages.slice(-30)),
-          `${SYSTEM}\n\n${modeInstruction(mode)}`,
-        );
-        return call.response();
+        const recent = messages.slice(-30);
+        const provider = pickProvider(process.env);
+        try {
+          return await provider.respond({
+            request,
+            ui: recent,
+            model: await convertToModelMessages(recent),
+            system: `${SYSTEM}\n\n${modeInstruction(mode)}`,
+          });
+        } catch (err) {
+          // Si el modelo real falla, la persona recibe igual una respuesta segura.
+          console.error("[chat] provider failed, using mock", provider.name, err);
+          return pickProvider({ CHIA_AI_PROVIDER: "mock" }).respond({ request, ui: recent, model: [], system: "" });
+        }
       },
     },
   },
