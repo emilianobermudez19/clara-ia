@@ -13,6 +13,35 @@ export interface SymptomEntry {
   text: string;
 }
 
+export interface SavedTurn {
+  role: "user" | "assistant";
+  text: string;
+}
+
+/** Consulta guardada por decisión de la persona (las anónimas nunca se guardan). */
+export interface Consultation {
+  id: string;
+  date: string; // ISO
+  title: string;
+  turns: SavedTurn[];
+}
+
+export interface Reminder {
+  id: string;
+  name: string; // p. ej. "Pastilla", "PrEP", "Antibiótico"
+  times: string[]; // "HH:MM"
+  note: string; // indicación copiada de la receta, tal cual
+  active: boolean;
+}
+
+export interface TeleRequest {
+  id: string;
+  date: string; // ISO
+  specialty: string;
+  reason: string;
+  status: "pending";
+}
+
 export interface Profile {
   alias: string;
   bloodType: BloodType;
@@ -20,6 +49,9 @@ export interface Profile {
   medications: string;
   conditions: string;
   symptoms: SymptomEntry[];
+  consultations: Consultation[];
+  reminders: Reminder[];
+  teleRequests: TeleRequest[];
 }
 
 export interface SealedVault {
@@ -31,7 +63,35 @@ export interface SealedVault {
 
 export const emptyProfile = (alias: string): Profile => ({
   alias, bloodType: "unknown", allergies: "", medications: "", conditions: "", symptoms: [],
+  consultations: [], reminders: [], teleRequests: [],
 });
+
+/** Completa fichas guardadas con versiones anteriores (sin consultas, recordatorios, etc.). */
+export const normalizeProfile = (p: Partial<Profile> & { alias: string }): Profile => ({ ...emptyProfile(p.alias), ...p });
+
+export const newId = () => crypto.getRandomValues(new Uint32Array(2)).join("-");
+
+/** Agrega o actualiza una consulta guardada; conserva las 50 más recientes. */
+export function upsertConsultation(list: Consultation[], c: Consultation): Consultation[] {
+  return [c, ...list.filter((x) => x.id !== c.id)].slice(0, 50);
+}
+
+/** Próxima toma de los recordatorios activos, a partir de "ahora" (hora local). */
+export function nextDose(reminders: Reminder[], now: Date): { reminder: Reminder; at: Date } | null {
+  let best: { reminder: Reminder; at: Date } | null = null;
+  for (const r of reminders) {
+    if (!r.active) continue;
+    for (const t of r.times) {
+      const [h, m] = t.split(":").map(Number);
+      if (Number.isNaN(h) || Number.isNaN(m)) continue;
+      const at = new Date(now);
+      at.setHours(h, m, 0, 0);
+      if (at.getTime() <= now.getTime()) at.setDate(at.getDate() + 1);
+      if (!best || at < best.at) best = { reminder: r, at };
+    }
+  }
+  return best;
+}
 
 export const isValidPin = (pin: string) => /^\d{6}$/.test(pin);
 
@@ -64,7 +124,7 @@ export async function sealProfile(profile: Profile, pin: string): Promise<Sealed
 export async function openProfile(sealed: SealedVault, pin: string): Promise<Profile> {
   const key = await deriveKey(pin, fromB64(sealed.salt));
   const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(sealed.iv) }, key, fromB64(sealed.ciphertext));
-  return JSON.parse(dec.decode(pt)) as Profile;
+  return normalizeProfile(JSON.parse(dec.decode(pt)) as Profile);
 }
 
 export function readVault(): SealedVault | null {

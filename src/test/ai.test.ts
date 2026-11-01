@@ -6,7 +6,7 @@ import { pickProviderName } from "@/server/ai/providers";
 describe("motor de IA", () => {
   it("sin claves usa el modo demostración", () => expect(pickProviderName({})).toBe("mock"));
   it("con clave de Lovable usa Lovable", () => expect(pickProviderName({ LOVABLE_API_KEY: "k" })).toBe("lovable"));
-  it("con servidor compatible usa modelo abierto", () =>
+  it("con servidor compatible (p. ej. Ollama) usa modelo abierto", () =>
     expect(pickProviderName({ CHIA_AI_BASE_URL: "http://localhost:11434/v1", CHIA_AI_MODEL: "llama3.1" })).toBe("openai-compatible"));
   it("forzar un proveedor sin su configuración cae a demostración", () =>
     expect(pickProviderName({ CHIA_AI_PROVIDER: "openai-compatible" })).toBe("mock"));

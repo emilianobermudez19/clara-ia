@@ -12,6 +12,11 @@ interface Entry {
 
 const ENTRIES: Entry[] = [
   {
+    keys: ["poner un condon", "ponerme un condon", "usar un condon", "uso un condon", "put on a condom", "use a condom"],
+    es: "Así se usa un condón externo, paso a paso:\n\n[[media:condon-externo]]\n\nUsa uno nuevo en cada relación y nunca dos a la vez. Si se rompe, tienes 72 horas para la anticoncepción de emergencia y la PEP.",
+    en: "Here's how to use an external condom, step by step:\n\n[[media:condon-externo]]\n\nUse a new one every time and never two at once. If it breaks, you have 72 hours for emergency contraception and PEP.",
+  },
+  {
     keys: ["rompio", "roto", "rompe", "broke", "broken", "emergencia", "emergency", "pastilla del dia siguiente", "morning after"],
     es: "Todavía puedes actuar. Hay dos cosas que importan ahora:\n\n- **Evitar un embarazo:** la anticoncepción de emergencia funciona mejor mientras antes se use, idealmente en las primeras 72 horas. En México se vende en farmacias sin receta.\n- **Cuidarte de infecciones:** si no conoces el estado de salud de tu pareja, hazte una prueba. Para VIH existe un tratamiento preventivo (PEP) que hay que empezar antes de 72 horas en un centro de salud.",
     en: "You can still act. Two things matter now:\n\n- **Preventing pregnancy:** emergency contraception works best the sooner it's used, ideally within 72 hours. In many countries it's sold over the counter.\n- **Protecting against infections:** if you don't know your partner's status, get tested. For HIV there is a preventive treatment (PEP) that must start within 72 hours at a health center.",

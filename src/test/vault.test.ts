@@ -20,3 +20,25 @@ describe("ficha médica cifrada", () => {
     expect(isValidPin("12345a")).toBe(false);
   });
 });
+
+import { nextDose, normalizeProfile, upsertConsultation } from "@/lib/vault";
+
+describe("Mi espacio", () => {
+  it("fichas antiguas se completan sin perder datos", () => {
+    const p = normalizeProfile({ alias: "luna", allergies: "látex" } as never);
+    expect(p.allergies).toBe("látex");
+    expect(p.reminders).toEqual([]);
+    expect(p.consultations).toEqual([]);
+  });
+  it("calcula la próxima toma (hoy o mañana)", () => {
+    const now = new Date(2026, 10, 1, 21, 0);
+    const r = [{ id: "1", name: "PrEP", times: ["08:00", "22:00"], note: "", active: true }];
+    expect(nextDose(r, now)?.at.getHours()).toBe(22);
+    expect(nextDose(r, new Date(2026, 10, 1, 23, 0))?.at.getDate()).toBe(2);
+    expect(nextDose([{ ...r[0], active: false }], now)).toBeNull();
+  });
+  it("actualiza una consulta sin duplicarla", () => {
+    const c = { id: "a", date: "", title: "x", turns: [] };
+    expect(upsertConsultation(upsertConsultation([], c), { ...c, title: "y" })).toEqual([{ ...c, title: "y" }]);
+  });
+});

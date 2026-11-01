@@ -1,4 +1,4 @@
-import { X, Home, MessageCircle, BookOpen, UserRound } from "lucide-react";
+import { X, Home, MessageCircle, UserRound } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -32,12 +32,11 @@ export function BottomNav({ active }: { active: "inicio" | "chat" | "aprende" | 
   const items = [
     { to: "/", label: t.navHome, key: "inicio", Icon: Home },
     { to: "/chat", label: t.navChat, key: "chat", Icon: MessageCircle },
-    { to: "/aprende", label: t.navLearn, key: "aprende", Icon: BookOpen },
     { to: "/cuenta", label: t.navSpace, key: "cuenta", Icon: UserRound },
   ] as const;
   return (
     <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
-      <div className="mx-auto grid max-w-md grid-cols-4">
+      <div className="mx-auto grid max-w-md grid-cols-3">
         {items.map(({ to, label, key, Icon }) => {
           const on = active === key;
           return (

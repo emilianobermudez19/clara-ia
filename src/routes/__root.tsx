@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { QuickExit } from "../components/QuickExit";
 import { Header } from "../components/Header";
 import { I18nProvider } from "../lib/i18n";
+import { VaultProvider } from "../lib/vault-context";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -126,10 +127,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Header />
-        <QuickExit />
-        <Outlet />
+        <VaultProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Header />
+          <QuickExit />
+          <Outlet />
+        </VaultProvider>
       </I18nProvider>
     </QueryClientProvider>
   );

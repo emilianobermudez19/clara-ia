@@ -5,6 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { ArrowUp, Phone, ChevronLeft, Globe } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import { ChatMedia } from "@/components/ChatMedia";
+import { splitMedia } from "@/lib/media";
+import { useVault } from "@/lib/vault-context";
+import { newId, upsertConsultation } from "@/lib/vault";
 import { useLanguageMode } from "@/lib/mode";
 import { detectCrisis, HELPLINES } from "@/lib/crisis";
 import { IntentCTA } from "@/components/QuickExit";
@@ -66,6 +70,21 @@ function Chat() {
     if (detectCrisis(text)) setCrisisAt((s) => new Set(s).add(last.id));
   }, [messages, crisisAt]);
 
+  // Guardar en Mi espacio: solo si la persona tiene su espacio abierto Y lo activa. Por defecto, nada se guarda.
+  const vault = useVault();
+  const [save, setSave] = useState(false);
+  const consultId = useRef(newId());
+  useEffect(() => {
+    if (!save || !vault.profile || status !== "ready" || messages.length < 2) return;
+    const turns = messages.map((m) => ({
+      role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+      text: m.parts.map((p) => (p.type === "text" ? p.text : "")).join(""),
+    }));
+    const title = turns.find((x) => x.role === "user")?.text.slice(0, 60) ?? "Consulta";
+    void vault.update((p) => ({ ...p, consultations: upsertConsultation(p.consultations, { id: consultId.current, date: new Date().toISOString(), title, turns }) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [save, status, messages.length]);
+
   const send = (txt: string) => { if (!txt.trim() || busy) return; sendMessage({ text: txt }); setInput(""); };
 
   // Pregunta que viene del inicio (?q=...). Se envía una vez y se quita de la URL para no dejar rastro en el historial.
@@ -107,7 +126,14 @@ function Chat() {
           ))}
         </div>
       </header>
-      <p className="bg-secondary px-4 py-2 text-center text-[13px] text-secondary-foreground">{t.chatTemp}</p>
+      {vault.profile ? (
+        <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 bg-secondary px-4 text-[13px] font-semibold text-secondary-foreground">
+          <input type="checkbox" checked={save} onChange={(e) => setSave(e.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />
+          {save ? t.chatSaving : t.chatSaveToggle}
+        </label>
+      ) : (
+        <p className="bg-secondary px-4 py-2 text-center text-[13px] text-secondary-foreground">{t.chatTemp}</p>
+      )}
 
       <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
         {messages.length === 0 && (
@@ -127,7 +153,13 @@ function Chat() {
               </div>
             ) : (
               <div className="max-w-[92%] rounded-[20px] rounded-bl-md border border-border bg-card px-4 py-3 leading-relaxed text-foreground [&_a]:font-semibold [&_a]:text-primary [&_li]:ml-5 [&_li]:list-disc [&_p+p]:mt-2 [&_strong]:font-bold [&_ul]:mt-2">
-                {m.parts.map((p, i) => (p.type === "text" ? <ReactMarkdown key={i}>{p.text}</ReactMarkdown> : null))}
+                {m.parts.map((p, i) =>
+                  p.type === "text"
+                    ? splitMedia(p.text).map((part, j) =>
+                        part.type === "media" ? <ChatMedia key={`${i}-${j}`} id={part.id} /> : <ReactMarkdown key={`${i}-${j}`}>{part.text}</ReactMarkdown>,
+                      )
+                    : null,
+                )}
               </div>
             )}
             {crisisAt.has(m.id) && <CrisisCards />}

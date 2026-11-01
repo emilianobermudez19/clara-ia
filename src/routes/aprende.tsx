@@ -148,7 +148,7 @@ function Aprende() {
         {empty && <p className="text-base text-muted-foreground">{t.noResults}</p>}
         <IntentCTA source={`aprende-${tab}`} />
       </div>
-      <BottomNav active="aprende" />
+      <BottomNav active="inicio" />
     </main>
   );
 }
