@@ -1,7 +1,8 @@
 // Master Prompt clínico de Chía. Versionado: cualquier cambio debe pasar el set de pruebas de seguridad.
 import { modeInstruction } from "@/lib/mode";
+import { topicInstruction } from "@/lib/topics";
 
-export const PROMPT_VERSION = "2026-11-01.1";
+export const PROMPT_VERSION = "2026-11-01.2";
 
 export type Channel = "web" | "whatsapp";
 
@@ -37,6 +38,6 @@ You can attach a reviewed visual guide by writing its tag on its own line. Use a
 Available tags: ${mediaIds.map((id) => `[[media:${id}]]`).join(", ")}.${channel === "whatsapp" ? "\nIn this channel the tag becomes a link, so keep the text understandable without it." : ""}`;
 }
 
-export function buildSystemPrompt(opts: { mode: unknown; channel: Channel; mediaIds: readonly string[] }): string {
-  return [CORE, mediaRules(opts.channel, opts.mediaIds), modeInstruction(opts.mode)].filter(Boolean).join("\n\n");
+export function buildSystemPrompt(opts: { mode: unknown; channel: Channel; mediaIds: readonly string[]; topic?: unknown }): string {
+  return [CORE, mediaRules(opts.channel, opts.mediaIds), topicInstruction(opts.topic), modeInstruction(opts.mode)].filter(Boolean).join("\n\n");
 }

@@ -9,6 +9,7 @@ import { ChatMedia } from "@/components/ChatMedia";
 import { splitMedia } from "@/lib/media";
 import { useVault } from "@/lib/vault-context";
 import { newId, upsertConsultation } from "@/lib/vault";
+import { isTopic, type Topic } from "@/lib/topics";
 import { useLanguageMode } from "@/lib/mode";
 import { detectCrisis, HELPLINES } from "@/lib/crisis";
 import { IntentCTA } from "@/components/QuickExit";
@@ -53,7 +54,12 @@ function Chat() {
   const { mode, setMode } = useLanguageMode();
   const modeRef = useRef(mode);
   modeRef.current = mode;
-  const [transport] = useState(() => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode: modeRef.current }) }));
+  // Categoría elegida en Inicio: viaja con cada mensaje para que la IA mantenga el enfoque.
+  const topicRef = useRef<Topic | null>(null);
+  const [topic, setTopic] = useState<Topic | null>(null);
+  const [transport] = useState(
+    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode: modeRef.current, topic: topicRef.current }) }),
+  );
   const { messages, sendMessage, status, error } = useChat({ transport });
   const [input, setInput] = useState("");
   const [crisisAt, setCrisisAt] = useState<Set<string>>(new Set());
@@ -92,9 +98,15 @@ function Chat() {
   useEffect(() => {
     if (sentInitial.current) return;
     sentInitial.current = true;
-    const q = new URLSearchParams(window.location.search).get("q");
-    if (q) {
-      window.history.replaceState(null, "", window.location.pathname);
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    const tp = params.get("topic");
+    if (q || tp) window.history.replaceState(null, "", window.location.pathname);
+    if (isTopic(tp)) {
+      topicRef.current = tp;
+      setTopic(tp);
+      send(q ? q.slice(0, 500) : t.topicStart[tp]);
+    } else if (q) {
       send(q.slice(0, 500));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,6 +138,11 @@ function Chat() {
           ))}
         </div>
       </header>
+      {topic && (
+        <p className="border-b border-border bg-card px-4 py-2 text-center text-[13px] font-semibold text-primary">
+          {t.topics.find((x) => x.k === topic)?.label}
+        </p>
+      )}
       {vault.profile ? (
         <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 bg-secondary px-4 text-[13px] font-semibold text-secondary-foreground">
           <input type="checkbox" checked={save} onChange={(e) => setSave(e.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />

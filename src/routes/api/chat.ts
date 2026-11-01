@@ -7,8 +7,8 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { messages, mode } = (await request.json()) as { messages: UIMessage[]; mode?: unknown };
-        return streamWebReply({ request, ui: messages, mode, env: process.env });
+        const { messages, mode, topic } = (await request.json()) as { messages: UIMessage[]; mode?: unknown; topic?: unknown };
+        return streamWebReply({ request, ui: messages, mode, topic, env: process.env });
       },
     },
   },

@@ -1,0 +1,12 @@
+{
+  "name": "Chía",
+  "short_name": "Chía",
+  "description": "Tu compañera de salud confidencial",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#5A3E85",
+  "lang": "es",
+  "icons": [{ "src": "/favicon.ico", "sizes": "64x64", "type": "image/x-icon" }]
+}

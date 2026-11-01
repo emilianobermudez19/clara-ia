@@ -10,10 +10,10 @@ type Env = Record<string, string | undefined>;
 const MAX_TURNS = 30;
 
 /** Web: respuesta en streaming. Si el modelo falla, responde el modo demostración. */
-export async function streamWebReply(opts: { request: Request; ui: UIMessage[]; mode: unknown; env: Env }): Promise<Response> {
+export async function streamWebReply(opts: { request: Request; ui: UIMessage[]; mode: unknown; topic?: unknown; env: Env }): Promise<Response> {
   const ui = opts.ui.slice(-MAX_TURNS);
   const provider = pickProvider(opts.env);
-  const system = buildSystemPrompt({ mode: opts.mode, channel: "web", mediaIds: MEDIA_IDS });
+  const system = buildSystemPrompt({ mode: opts.mode, topic: opts.topic, channel: "web", mediaIds: MEDIA_IDS });
   try {
     return await provider.respond({ request: opts.request, ui, model: await convertToModelMessages(ui), system });
   } catch (err) {

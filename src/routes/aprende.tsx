@@ -5,6 +5,7 @@ import { BottomNav, IntentCTA } from "@/components/QuickExit";
 import { useI18n } from "@/lib/i18n";
 import { Illo } from "@/components/Illustrations";
 import { GuideMedia } from "@/components/GuideMedia";
+import { LegalFooter } from "@/components/LegalFooter";
 import { GUIDES, MYTHS, type Guide, type Myth as MythT } from "@/content/guides";
 
 export const Route = createFileRoute("/aprende")({
@@ -148,6 +149,7 @@ function Aprende() {
         {empty && <p className="text-base text-muted-foreground">{t.noResults}</p>}
         <IntentCTA source={`aprende-${tab}`} />
       </div>
+      <div className="mt-8"><LegalFooter /></div>
       <BottomNav active="inicio" />
     </main>
   );
