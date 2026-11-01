@@ -27,7 +27,7 @@ function Index() {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 px-5 pb-32 pt-24">
+    <main className="safe-page mx-auto flex min-h-dvh max-w-md flex-col gap-6">
       {ready && (vault.profile ? <Home /> : <AuthGate />)}
       <LegalFooter />
       <BottomNav active="inicio" />
@@ -47,10 +47,10 @@ function Home() {
   const h = now.getHours();
   const greet = h < 12 ? t.greetMorning : h < 19 ? t.greetAfternoon : t.greetEvening;
   const next = nextDose(profile.reminders, now);
-  const ask = (text: string) => { if (text.trim()) navigate({ to: "/chat", search: { q: text.trim() } as never }); };
+  const ask = (text: string) => { if (text.trim()) navigate({ to: "/chat", search: { q: text.trim() } }); };
 
   return (
-    <>
+    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <section className="space-y-4 rounded-[28px] bg-primary p-5 text-primary-foreground">
         <div className="space-y-1">
           <p className="text-sm font-semibold opacity-80">{greet}, {profile.alias}</p>
@@ -98,6 +98,6 @@ function Home() {
       <Link to="/aprende" className="flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-primary">
         <BookOpen className="h-4 w-4" /> {t.guidesLink}
       </Link>
-    </>
+    </div>
   );
 }

@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bell, CalendarClock, ClipboardList, Lock, MessageSquareText, Plus, ShieldCheck, Stethoscope, Trash2 } from "lucide-react";
+import { Bell, CalendarClock, Check, ClipboardList, Lock, MessageSquareText, Plus, ShieldCheck, Stethoscope, Syringe, Trash2 } from "lucide-react";
 import { BottomNav } from "@/components/QuickExit";
 import { useI18n } from "@/lib/i18n";
 import { useVault } from "@/lib/vault-context";
-import { BLOOD_TYPES, newId, nextDose, type BloodType, type Profile, type Reminder } from "@/lib/vault";
+import { BLOOD_TYPES, COMMON_VACCINES, newId, nextDose, type BloodType, type Profile, type Reminder, type Vaccine } from "@/lib/vault";
 import { AUTH_COPY as C, card, field, label, primaryBtn, type Copy } from "@/components/Auth";
 import { AuthGate } from "@/components/AuthGate";
 import { LegalFooter } from "@/components/LegalFooter";
@@ -30,7 +30,7 @@ function Cuenta() {
   useEffect(() => setReady(true), []);
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-32 pt-24">
+    <main className="safe-page mx-auto min-h-dvh max-w-md">
       {!ready ? null : vault.profile ? (
         <Dashboard c={c} profile={vault.profile} />
       ) : (
@@ -61,7 +61,7 @@ function Dashboard({ c, profile }: { c: Copy; profile: Profile }) {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-display text-3xl text-foreground">{c.hello(profile.alias)}</h1>
         <button onClick={vault.lock} className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground">
@@ -242,6 +242,8 @@ function Record({ c, profile }: { c: Copy; profile: Profile }) {
         </div>
       </div>
 
+      <Vaccines c={c} profile={profile} />
+
       <div className={`${card} space-y-3`}>
         <h2 className="text-lg font-bold text-foreground">{c.symptoms}</h2>
         <form className="flex gap-2" onSubmit={(e) => {
@@ -341,5 +343,108 @@ function Tele({ c, profile }: { c: Copy; profile: Profile }) {
       ))}
       <p className="text-sm font-semibold text-foreground">{c.teleUrgent}</p>
     </section>
+  );
+}
+
+function Vaccines({ c, profile }: { c: Copy; profile: Profile }) {
+  const { lang } = useI18n();
+  const vault = useVault();
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState<Vaccine["status"]>("applied");
+  const [date, setDate] = useState("");
+  const [dose, setDose] = useState("");
+  const today = new Date().toISOString().slice(0, 10);
+
+  const add = (v: Omit<Vaccine, "id">) => vault.update((p) => ({ ...p, vaccines: [...p.vaccines, { ...v, id: newId() }] }));
+  const markApplied = (v: Vaccine) =>
+    vault.update((p) => ({ ...p, vaccines: p.vaccines.map((x) => (x.id === v.id ? { ...x, status: "applied", date: x.date || today } : x)) }));
+  const remove = (v: Vaccine) => vault.update((p) => ({ ...p, vaccines: p.vaccines.filter((x) => x.id !== v.id) }));
+  const fmt = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(lang === "es" ? "es-MX" : "en-US", { day: "numeric", month: "short", year: "numeric" });
+  const missing = COMMON_VACCINES.filter((n) => !profile.vaccines.some((v) => v.name === n));
+
+  return (
+    <div className={`${card} space-y-3`}>
+      <h2 className="flex items-center gap-2 text-lg font-bold text-foreground"><Syringe className="h-5 w-5 text-primary" /> {c.vaccines}</h2>
+      <p className="text-sm text-muted-foreground">{c.vaccinesHint}</p>
+
+      {profile.vaccines.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{c.vacEmpty}</p>
+      ) : (
+        <ul className="space-y-2">
+          {profile.vaccines.map((v) => (
+            <li key={v.id} className="flex items-center gap-3 rounded-2xl bg-background p-3">
+              <div className="flex-1">
+                <p className="text-base font-semibold text-foreground">{v.name}{v.dose ? ` · ${v.dose}` : ""}</p>
+                <p className={`text-xs font-semibold ${v.status === "applied" ? "text-accent-foreground" : "text-primary"}`}>
+                  {v.status === "applied" ? `${c.vacApplied}${v.date ? ` · ${fmt(v.date)}` : ""}` : c.vacPending}
+                </p>
+              </div>
+              {v.status === "pending" && (
+                <button onClick={() => markApplied(v)} aria-label={`${c.vacMarkApplied}: ${v.name}`} className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                  <Check className="h-5 w-5" />
+                </button>
+              )}
+              <button onClick={() => remove(v)} aria-label={`${c.vacDelete}: ${v.name}`} className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <Trash2 className="h-5 w-5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {missing.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-foreground">{c.vacQuick}</p>
+          <div className="flex flex-wrap gap-2">
+            {missing.map((n) => (
+              <button key={n} onClick={() => add({ name: n, status: "pending", date: "", dose: "" })} className="min-h-10 rounded-full bg-secondary px-3 text-sm font-medium text-secondary-foreground">
+                + {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <form
+        className="space-y-3 border-t border-border pt-3"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!name.trim()) return;
+          await add({ name: name.trim(), status, date: status === "applied" ? date : "", dose: dose.trim() });
+          setName(""); setDate(""); setDose("");
+        }}
+      >
+        <div>
+          <label htmlFor="vac-name" className={label}>{c.vacName}</label>
+          <input id="vac-name" list="vac-list" value={name} onChange={(e) => setName(e.target.value)} className={field} />
+          <datalist id="vac-list">{COMMON_VACCINES.map((n) => <option key={n} value={n} />)}</datalist>
+        </div>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={c.vacName}>
+          {(["applied", "pending"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              role="radio"
+              aria-checked={status === s}
+              onClick={() => setStatus(s)}
+              className={`min-h-11 rounded-full text-sm font-semibold ${status === s ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}
+            >
+              {s === "applied" ? c.vacApplied : c.vacPending}
+            </button>
+          ))}
+        </div>
+        {status === "applied" && (
+          <div>
+            <label htmlFor="vac-date" className={label}>{c.vacDate}</label>
+            <input id="vac-date" type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} className={field} />
+          </div>
+        )}
+        <div>
+          <label htmlFor="vac-dose" className={label}>{c.vacDose}</label>
+          <input id="vac-dose" value={dose} onChange={(e) => setDose(e.target.value)} placeholder={c.vacDosePh} className={field} />
+        </div>
+        <button type="submit" className={primaryBtn}><Plus className="h-5 w-5" /> {c.vacAdd}</button>
+      </form>
+    </div>
   );
 }

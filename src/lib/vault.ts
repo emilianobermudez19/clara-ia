@@ -34,6 +34,18 @@ export interface Reminder {
   active: boolean;
 }
 
+/** Vacuna de la cartilla. "applied" con fecha, o "pending" (por aplicar o refuerzo). */
+export interface Vaccine {
+  id: string;
+  name: string;
+  status: "applied" | "pending";
+  date: string; // AAAA-MM-DD, vacío si está pendiente
+  dose: string; // p. ej. "1.ª dosis", "Refuerzo"
+}
+
+/** Vacunas frecuentes en adultos, para agregarlas con un toque. */
+export const COMMON_VACCINES = ["VPH", "Hepatitis B", "Tétanos y difteria (Td)", "Influenza", "COVID-19", "Hepatitis A", "Sarampión, rubéola y paperas (SRP)"] as const;
+
 export interface TeleRequest {
   id: string;
   date: string; // ISO
@@ -52,6 +64,7 @@ export interface Profile {
   consultations: Consultation[];
   reminders: Reminder[];
   teleRequests: TeleRequest[];
+  vaccines: Vaccine[];
 }
 
 export interface SealedVault {
@@ -63,7 +76,7 @@ export interface SealedVault {
 
 export const emptyProfile = (alias: string): Profile => ({
   alias, bloodType: "unknown", allergies: "", medications: "", conditions: "", symptoms: [],
-  consultations: [], reminders: [], teleRequests: [],
+  consultations: [], reminders: [], teleRequests: [], vaccines: [],
 });
 
 /** Completa fichas guardadas con versiones anteriores (sin consultas, recordatorios, etc.). */

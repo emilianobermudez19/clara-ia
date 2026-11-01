@@ -18,7 +18,7 @@ export function Categories() {
           return (
             <button
               key={x.k}
-              onClick={() => navigate({ to: "/chat", search: { topic: x.k } as never })}
+              onClick={() => navigate({ to: "/chat", search: { topic: x.k } })}
               className="flex min-h-32 flex-col items-start justify-between gap-3 rounded-[20px] border border-border bg-card p-4 text-left"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-primary"><Icon className="h-5 w-5" /></span>

@@ -7,7 +7,7 @@ import { Logo } from "@/components/Logo";
 export function Header() {
   const { lang, setLang, theme, toggleTheme, t } = useI18n();
   return (
-    <div className="fixed inset-x-0 top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+    <div className="safe-header fixed inset-x-0 top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-md items-center gap-2 px-4 pr-40">
         <Link to="/" aria-label="Chía, inicio" className="mr-auto">
           <Logo />

@@ -28,7 +28,7 @@ function Legal() {
   const d = docs[doc];
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-32 pt-24">
+    <main className="safe-page mx-auto min-h-dvh max-w-md">
       <h1 className="font-display text-3xl text-foreground">{t.legalLink}</h1>
       <p className="mt-1 text-sm text-muted-foreground">{t.legalVersion(LEGAL_VERSION)}</p>
 

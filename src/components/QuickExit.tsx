@@ -20,7 +20,7 @@ export function QuickExit() {
     <button
       onClick={quickExit}
       aria-label={t.exit}
-      className="fixed right-4 top-3 z-50 flex min-h-11 items-center gap-1.5 rounded-full bg-exit px-4 text-sm font-bold text-exit-foreground active:scale-95"
+      className="safe-exit fixed right-4 z-50 flex min-h-11 items-center gap-1.5 rounded-full bg-exit px-4 text-sm font-bold text-exit-foreground active:scale-95"
     >
       <X className="h-4 w-4" /> {t.exit}
     </button>
@@ -35,7 +35,7 @@ export function BottomNav({ active }: { active: "inicio" | "chat" | "aprende" | 
     { to: "/cuenta", label: t.navSpace, key: "cuenta", Icon: UserRound },
   ] as const;
   return (
-    <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <nav aria-label="Principal" className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
       <div className="mx-auto grid max-w-md grid-cols-3">
         {items.map(({ to, label, key, Icon }) => {
           const on = active === key;

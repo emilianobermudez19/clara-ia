@@ -1,12 +1,23 @@
 {
-  "name": "Chía",
+  "id": "/",
+  "name": "Chía — Tu compañera de salud confidencial",
   "short_name": "Chía",
-  "description": "Tu compañera de salud confidencial",
-  "start_url": "/",
+  "description": "Orientación de salud confidencial: consulta, recordatorios y ficha médica cifrada.",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#FAF8F5",
+  "orientation": "portrait",
+  "background_color": "#5A3E85",
   "theme_color": "#5A3E85",
   "lang": "es",
-  "icons": [{ "src": "/favicon.ico", "sizes": "64x64", "type": "image/x-icon" }]
+  "dir": "ltr",
+  "categories": ["health", "medical"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Consulta Express", "short_name": "Consulta", "url": "/chat", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
 }

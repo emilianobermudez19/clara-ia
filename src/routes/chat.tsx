@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState } from "react";
@@ -15,13 +15,23 @@ import { detectCrisis, HELPLINES } from "@/lib/crisis";
 import { IntentCTA } from "@/components/QuickExit";
 import { useI18n } from "@/lib/i18n";
 
+export interface ChatSearch {
+  q?: string;
+  topic?: Topic;
+}
+
 export const Route = createFileRoute("/chat")({
+  // Parámetros declarados: el router los entrega ya validados al montar el chat.
+  validateSearch: (s: Record<string, unknown>): ChatSearch => ({
+    q: typeof s.q === "string" && s.q.trim() ? s.q.trim().slice(0, 500) : undefined,
+    topic: isTopic(s.topic) ? s.topic : undefined,
+  }),
   head: () => ({
     meta: [
-      { title: "Anonymous chat — Chia" },
-      { name: "description", content: "Chat anonymously with an AI sexual health guide, in Spanish or English." },
-      { property: "og:title", content: "Anonymous chat — Chia" },
-      { property: "og:description", content: "Ask sexual health questions with no sign-up." },
+      { title: "Consulta — Chía" },
+      { name: "description", content: "Consulta confidencial con el asistente de salud de Chía." },
+      { property: "og:title", content: "Consulta — Chía" },
+      { property: "og:description", content: "Pregunta sobre tu salud sin juicios." },
     ],
   }),
   component: Chat,
@@ -57,8 +67,10 @@ function Chat() {
   // Categoría elegida en Inicio: viaja con cada mensaje para que la IA mantenga el enfoque.
   const topicRef = useRef<Topic | null>(null);
   const [topic, setTopic] = useState<Topic | null>(null);
+  // Ficha compartida SOLO si la persona lo activa en esta consulta (apagado por defecto).
+  const healthRef = useRef<{ allergies: string; conditions: string; medications: string } | null>(null);
   const [transport] = useState(
-    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode: modeRef.current, topic: topicRef.current }) }),
+    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode: modeRef.current, topic: topicRef.current, health: healthRef.current }) }),
   );
   const { messages, sendMessage, status, error } = useChat({ transport });
   const [input, setInput] = useState("");
@@ -79,6 +91,11 @@ function Chat() {
   // Guardar en Mi espacio: solo si la persona tiene su espacio abierto Y lo activa. Por defecto, nada se guarda.
   const vault = useVault();
   const [save, setSave] = useState(false);
+  const [useRecord, setUseRecord] = useState(false);
+  healthRef.current =
+    useRecord && vault.profile
+      ? { allergies: vault.profile.allergies, conditions: vault.profile.conditions, medications: vault.profile.medications }
+      : null;
   const consultId = useRef(newId());
   useEffect(() => {
     if (!save || !vault.profile || status !== "ready" || messages.length < 2) return;
@@ -93,28 +110,26 @@ function Chat() {
 
   const send = (txt: string) => { if (!txt.trim() || busy) return; sendMessage({ text: txt }); setInput(""); };
 
-  // Pregunta que viene del inicio (?q=...). Se envía una vez y se quita de la URL para no dejar rastro en el historial.
+  // Pregunta o categoría que viene del Inicio: se envía sola como primer mensaje (una vez)
+  // y se quita de la URL para no dejar la pregunta en el historial del navegador.
+  const search = Route.useSearch();
+  const navigate = useNavigate();
   const sentInitial = useRef(false);
   useEffect(() => {
-    if (sentInitial.current) return;
+    if (sentInitial.current || (!search.q && !search.topic)) return;
     sentInitial.current = true;
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get("q");
-    const tp = params.get("topic");
-    if (q || tp) window.history.replaceState(null, "", window.location.pathname);
-    if (isTopic(tp)) {
-      topicRef.current = tp;
-      setTopic(tp);
-      send(q ? q.slice(0, 500) : t.topicStart[tp]);
-    } else if (q) {
-      send(q.slice(0, 500));
+    if (search.topic) {
+      topicRef.current = search.topic;
+      setTopic(search.topic);
     }
+    send(search.q ?? (search.topic ? t.topicStart[search.topic] : ""));
+    void navigate({ to: "/chat", search: {}, replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [search.q, search.topic]);
 
   return (
     <main className="mx-auto flex h-dvh max-w-md flex-col">
-      <header className="mt-16 flex items-center gap-3 border-b border-border bg-card px-3 py-2.5">
+      <header className="safe-chat-top flex items-center gap-3 border-b border-border bg-card px-3 py-2.5">
         <Link to="/" aria-label={t.chatBack} className="flex h-11 w-11 items-center justify-center rounded-full">
           <ChevronLeft className="h-5 w-5 text-foreground" />
         </Link>
@@ -144,10 +159,16 @@ function Chat() {
         </p>
       )}
       {vault.profile ? (
-        <label className="flex min-h-11 cursor-pointer items-center justify-center gap-2 bg-secondary px-4 text-[13px] font-semibold text-secondary-foreground">
-          <input type="checkbox" checked={save} onChange={(e) => setSave(e.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />
-          {save ? t.chatSaving : t.chatSaveToggle}
-        </label>
+        <div className="flex flex-wrap justify-center gap-x-4 bg-secondary px-4 text-[13px] font-semibold text-secondary-foreground">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2">
+            <input type="checkbox" checked={save} onChange={(e) => setSave(e.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />
+            {save ? t.chatSaving : t.chatSaveToggle}
+          </label>
+          <label className="flex min-h-11 cursor-pointer items-center gap-2">
+            <input type="checkbox" checked={useRecord} onChange={(e) => setUseRecord(e.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />
+            {t.chatUseRecord}
+          </label>
+        </div>
       ) : (
         <p className="bg-secondary px-4 py-2 text-center text-[13px] text-secondary-foreground">{t.chatTemp}</p>
       )}
@@ -188,7 +209,7 @@ function Chat() {
         <div ref={endRef} />
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="border-t border-border p-3">
+      <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="safe-bottom border-t border-border px-3 pt-3">
         <div className="flex items-end gap-2 rounded-[28px] border-[1.5px] border-input bg-card p-1.5 pl-3">
           <textarea
             ref={inputRef} rows={1} value={input} autoFocus

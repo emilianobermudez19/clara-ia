@@ -157,3 +157,35 @@
     letter-spacing: -0.01em;
   }
 }
+
+/* Zonas seguras de teléfonos con muesca, isla dinámica o barra de gestos (requiere viewport-fit=cover). */
+@layer utilities {
+  .safe-header {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-exit {
+    top: calc(env(safe-area-inset-top) + 0.75rem);
+  }
+  .safe-page {
+    padding-top: calc(6rem + env(safe-area-inset-top));
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+  }
+  .safe-chat-top {
+    margin-top: calc(4rem + env(safe-area-inset-top));
+  }
+  .safe-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    overscroll-behavior-y: none;
+  }
+}

@@ -115,7 +115,7 @@ function Aprende() {
   }, []);
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-32 pt-24">
+    <main className="safe-page mx-auto min-h-dvh max-w-md">
       <h1 className="font-display text-3xl text-foreground">{t.learnTitle}</h1>
       <p className="mt-2 text-base text-muted-foreground">{t.learnSub}</p>
 
