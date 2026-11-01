@@ -16,15 +16,15 @@ import { IntentCTA } from "@/components/QuickExit";
 import { useI18n } from "@/lib/i18n";
 
 export interface ChatSearch {
-  q?: string;
-  topic?: Topic;
+  q?: string | undefined;
+  topic?: Topic | undefined;
 }
 
 export const Route = createFileRoute("/chat")({
   // Parámetros declarados: el router los entrega ya validados al montar el chat.
   validateSearch: (s: Record<string, unknown>): ChatSearch => ({
-    q: typeof s.q === "string" && s.q.trim() ? s.q.trim().slice(0, 500) : undefined,
-    topic: isTopic(s.topic) ? s.topic : undefined,
+    q: typeof s["q"] === "string" && s["q"].trim() ? s["q"].trim().slice(0, 500) : undefined,
+    topic: isTopic(s["topic"]) ? s["topic"] : undefined,
   }),
   head: () => ({
     meta: [

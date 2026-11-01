@@ -83,14 +83,14 @@ const mock: ChatProvider = {
 /** Elige el proveedor según las variables de entorno. Puro: fácil de probar. */
 export function pickProviderName(env: Env): ProviderName {
   const has: Record<ProviderName, boolean> = {
-    openai: !!env.OPENAI_API_KEY,
-    groq: !!env.GROQ_API_KEY,
-    openrouter: !!env.OPENROUTER_API_KEY,
-    lovable: !!env.LOVABLE_API_KEY,
-    "openai-compatible": !!(env.CHIA_AI_BASE_URL && env.CHIA_AI_MODEL),
+    openai: !!env["OPENAI_API_KEY"],
+    groq: !!env["GROQ_API_KEY"],
+    openrouter: !!env["OPENROUTER_API_KEY"],
+    lovable: !!env["LOVABLE_API_KEY"],
+    "openai-compatible": !!(env["CHIA_AI_BASE_URL"] && env["CHIA_AI_MODEL"]),
     mock: true,
   };
-  const forced = env.CHIA_AI_PROVIDER as ProviderName | undefined;
+  const forced = env["CHIA_AI_PROVIDER"] as ProviderName | undefined;
   if (forced && forced in has) return has[forced] ? forced : "mock";
   const order: ProviderName[] = ["openai", "groq", "openrouter", "lovable", "openai-compatible"];
   return order.find((n) => has[n]) ?? "mock"; // nunca dejar a la persona sin respuesta
@@ -103,12 +103,12 @@ export function pickProvider(env: Env): ChatProvider {
     case "groq":
     case "openrouter": {
       const preset = PRESETS[name];
-      return openaiCompatible(name, preset.baseURL, env.CHIA_AI_MODEL ?? preset.model, env[preset.keyVar]!);
+      return openaiCompatible(name, preset.baseURL, env["CHIA_AI_MODEL"] ?? preset.model, env[preset.keyVar]!);
     }
     case "lovable":
-      return lovable(env.LOVABLE_API_KEY!, env.CHIA_AI_MODEL ?? "openai/gpt-6-astra");
+      return lovable(env["LOVABLE_API_KEY"]!, env["CHIA_AI_MODEL"] ?? "openai/gpt-6-astra");
     case "openai-compatible":
-      return openaiCompatible(name, env.CHIA_AI_BASE_URL!, env.CHIA_AI_MODEL!, env.CHIA_AI_API_KEY ?? "not-needed");
+      return openaiCompatible(name, env["CHIA_AI_BASE_URL"]!, env["CHIA_AI_MODEL"]!, env["CHIA_AI_API_KEY"] ?? "not-needed");
     default:
       return mock;
   }

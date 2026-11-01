@@ -28,11 +28,21 @@ export interface TextTurn {
 }
 
 /** Canales de solo texto (WhatsApp, SMS…): respuesta completa, con la multimedia convertida en enlaces. */
-export async function textReply(opts: { history: TextTurn[]; mode?: unknown; channel: Channel; env: Env; publicUrl: string }): Promise<string> {
+export async function textReply(opts: {
+  history: TextTurn[];
+  mode?: unknown;
+  topic?: unknown;
+  health?: unknown;
+  channel: Channel;
+  env: Env;
+  publicUrl: string;
+  /** La app móvil dibuja las guías visuales, así que conserva las etiquetas [[media:id]]. */
+  keepMedia?: boolean;
+}): Promise<string> {
   const history = opts.history.slice(-MAX_TURNS);
   const lastUser = [...history].reverse().find((t) => t.role === "user")?.text ?? "";
   const model: ModelMessage[] = history.map((t) => ({ role: t.role, content: t.text }));
-  const system = buildSystemPrompt({ mode: opts.mode, channel: opts.channel, mediaIds: MEDIA_IDS });
+  const system = buildSystemPrompt({ mode: opts.mode, topic: opts.topic, health: opts.health, channel: opts.channel, mediaIds: MEDIA_IDS });
   const provider = pickProvider(opts.env);
   let text: string;
   try {
@@ -41,7 +51,7 @@ export async function textReply(opts: { history: TextTurn[]; mode?: unknown; cha
     console.error("[chia] provider failed, using demo", provider.name, err);
     text = await pickProvider({ CHIA_AI_PROVIDER: "mock" }).text({ model, system, lastUser });
   }
-  return mediaToLinks(text, opts.publicUrl);
+  return opts.keepMedia ? text : mediaToLinks(text, opts.publicUrl);
 }
 
 export { lastUserText };

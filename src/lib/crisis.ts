@@ -17,7 +17,8 @@ const EXCEPTIONS = [
   "cut myself a slice", "cut myself some slack",
 ];
 
-const strip = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+// normalize() puede no existir en el motor JS de la app móvil: entonces solo se pasa a minúsculas.
+const strip = (s: string) => (typeof s.normalize === "function" ? s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : s.toLowerCase());
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Cada palabra clave debe empezar al inicio de una palabra: "rape" coincide con "raped",

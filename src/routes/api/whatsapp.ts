@@ -15,17 +15,17 @@ export const Route = createFileRoute("/api/whatsapp")({
         const url = new URL(request.url);
         const ok =
           url.searchParams.get("hub.mode") === "subscribe" &&
-          !!process.env.WHATSAPP_VERIFY_TOKEN &&
-          url.searchParams.get("hub.verify_token") === process.env.WHATSAPP_VERIFY_TOKEN;
+          !!process.env["WHATSAPP_VERIFY_TOKEN"] &&
+          url.searchParams.get("hub.verify_token") === process.env["WHATSAPP_VERIFY_TOKEN"];
         return ok ? new Response(url.searchParams.get("hub.challenge") ?? "") : new Response("Forbidden", { status: 403 });
       },
       POST: async ({ request }) => {
-        const secret = process.env.WHATSAPP_APP_SECRET;
+        const secret = process.env["WHATSAPP_APP_SECRET"];
         if (!secret) return new Response("Not configured", { status: 503 });
         const raw = await request.text();
         if (!verifySignature(raw, request.headers.get("x-hub-signature-256"), secret)) return new Response("Bad signature", { status: 401 });
 
-        const publicUrl = process.env.CHIA_PUBLIC_URL ?? "https://chia.app";
+        const publicUrl = process.env["CHIA_PUBLIC_URL"] ?? "https://chia.app";
         for (const msg of parseIncoming(JSON.parse(raw))) {
           try {
             let reply = await textReply({ history: [{ role: "user", text: msg.text }], channel: "whatsapp", env: process.env, publicUrl });

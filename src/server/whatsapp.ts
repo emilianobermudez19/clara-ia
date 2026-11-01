@@ -29,8 +29,8 @@ export function parseIncoming(payload: unknown): IncomingText[] {
 }
 
 export async function sendText(to: string, body: string, env: Record<string, string | undefined>) {
-  const token = env.WHATSAPP_TOKEN;
-  const phoneId = env.WHATSAPP_PHONE_NUMBER_ID;
+  const token = env["WHATSAPP_TOKEN"];
+  const phoneId = env["WHATSAPP_PHONE_NUMBER_ID"];
   if (!token || !phoneId) throw new Error("WhatsApp not configured");
   const res = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
     method: "POST",

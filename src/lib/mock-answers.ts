@@ -55,7 +55,8 @@ const FALLBACK = {
 
 const DEMO_NOTE = { es: "\n\n_Respuesta de demostración._", en: "\n\n_Demo answer._" };
 
-const strip = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+// normalize() puede no existir en el motor JS de la app móvil: entonces solo se pasa a minúsculas.
+const strip = (s: string) => (typeof s.normalize === "function" ? s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") : s.toLowerCase());
 
 /** Adivina el idioma por palabras frecuentes; ante la duda, español. */
 export function guessLang(text: string): MockLang {

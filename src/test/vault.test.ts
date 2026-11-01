@@ -35,7 +35,7 @@ describe("Mi espacio", () => {
     const r = [{ id: "1", name: "PrEP", times: ["08:00", "22:00"], note: "", active: true }];
     expect(nextDose(r, now)?.at.getHours()).toBe(22);
     expect(nextDose(r, new Date(2026, 10, 1, 23, 0))?.at.getDate()).toBe(2);
-    expect(nextDose([{ ...r[0], active: false }], now)).toBeNull();
+    expect(nextDose([{ id: "1", name: "PrEP", times: ["08:00"], note: "", active: false }], now)).toBeNull();
   });
   it("actualiza una consulta sin duplicarla", () => {
     const c = { id: "a", date: "", title: "x", turns: [] };

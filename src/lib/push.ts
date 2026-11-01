@@ -37,7 +37,7 @@ export async function enableBackgroundReminders(reminders: Reminder[], lang: "es
   const permission = await Notification.requestPermission();
   if (permission !== "granted") return "denied";
   const reg = await navigator.serviceWorker.register("/sw.js");
-  const vapid = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+  const vapid = import.meta.env["VITE_VAPID_PUBLIC_KEY"] as string | undefined;
   if (!vapid) return "not-configured"; // los avisos con la app abierta siguen funcionando
   try {
     const sub =

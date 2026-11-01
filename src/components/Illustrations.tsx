@@ -3,7 +3,7 @@
 const INK = "#5A3E85";
 const LAV = "#CDB8E3";
 
-export function IlloPackage({ className = "" }: { className?: string }) {
+export function IlloPackage({ className = "" }: { className?: string | undefined }) {
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
       <rect x="22" y="22" width="56" height="56" rx="9" fill="#FFFFFF" stroke={INK} strokeWidth="3" />
@@ -15,7 +15,7 @@ export function IlloPackage({ className = "" }: { className?: string }) {
   );
 }
 
-export function IlloOpen({ className = "" }: { className?: string }) {
+export function IlloOpen({ className = "" }: { className?: string | undefined }) {
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
       <path d="M24 30 L66 30 L76 40 L76 76 L24 76 Z" fill="#FFFFFF" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
@@ -26,7 +26,7 @@ export function IlloOpen({ className = "" }: { className?: string }) {
   );
 }
 
-export function IlloPinch({ className = "" }: { className?: string }) {
+export function IlloPinch({ className = "" }: { className?: string | undefined }) {
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
       <ellipse cx="50" cy="66" rx="26" ry="9" fill="#FFFFFF" stroke={INK} strokeWidth="3" />
@@ -38,7 +38,7 @@ export function IlloPinch({ className = "" }: { className?: string }) {
   );
 }
 
-export function IlloClock({ className = "", label = "72 h" }: { className?: string; label?: string }) {
+export function IlloClock({ className = "", label = "72 h" }: { className?: string | undefined; label?: string | undefined }) {
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
       <rect x="20" y="20" width="60" height="58" rx="9" fill="#FFFFFF" stroke={INK} strokeWidth="3" />
@@ -48,7 +48,7 @@ export function IlloClock({ className = "", label = "72 h" }: { className?: stri
   );
 }
 
-export function IlloTest({ className = "" }: { className?: string }) {
+export function IlloTest({ className = "" }: { className?: string | undefined }) {
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
       <rect x="14" y="38" width="72" height="26" rx="13" fill="#FFFFFF" stroke={INK} strokeWidth="3" />
@@ -63,7 +63,7 @@ export function IlloTest({ className = "" }: { className?: string }) {
 export type IlloName = "package" | "open" | "pinch" | "clock" | "test";
 const MAP = { package: IlloPackage, open: IlloOpen, pinch: IlloPinch, clock: IlloClock, test: IlloTest };
 
-export function Illo({ name, className }: { name: IlloName; className?: string }) {
+export function Illo({ name, className }: { name: IlloName; className?: string | undefined }) {
   const C = MAP[name];
   return <C className={className} />;
 }

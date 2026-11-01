@@ -17,7 +17,7 @@ export function splitMedia(text: string, allowed: readonly string[] = MEDIA_IDS)
   for (const m of text.matchAll(TOKEN)) {
     const before = text.slice(last, m.index);
     if (before.trim()) parts.push({ type: "text", text: before });
-    const id = m[1];
+    const id = m[1] ?? "";
     if (allowed.includes(id) && !seen.has(id)) {
       parts.push({ type: "media", id });
       seen.add(id);
@@ -31,5 +31,5 @@ export function splitMedia(text: string, allowed: readonly string[] = MEDIA_IDS)
 
 /** Para canales de solo texto (WhatsApp): cambia cada pieza por un enlace a la guía. */
 export function mediaToLinks(text: string, baseUrl: string, allowed: readonly string[] = MEDIA_IDS): string {
-  return text.replace(TOKEN, (_, id: string) => (allowed.includes(id) ? `${baseUrl.replace(/\/$/, "")}/aprende#${id}` : "")).trim();
+  return text.replace(TOKEN, (_: string, id: string) => (allowed.includes(id) ? `${baseUrl.replace(/\/$/, "")}/aprende#${id}` : "")).trim();
 }

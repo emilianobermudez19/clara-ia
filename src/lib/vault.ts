@@ -95,7 +95,7 @@ export function nextDose(reminders: Reminder[], now: Date): { reminder: Reminder
   for (const r of reminders) {
     if (!r.active) continue;
     for (const t of r.times) {
-      const [h, m] = t.split(":").map(Number);
+      const [h = Number.NaN, m = Number.NaN] = t.split(":").map(Number);
       if (Number.isNaN(h) || Number.isNaN(m)) continue;
       const at = new Date(now);
       at.setHours(h, m, 0, 0);
@@ -108,8 +108,10 @@ export function nextDose(reminders: Reminder[], now: Date): { reminder: Reminder
 
 export const isValidPin = (pin: string) => /^\d{6}$/.test(pin);
 
-const enc = new TextEncoder();
-const dec = new TextDecoder();
+// Se crean al usarse (no al cargar el módulo): la app móvil importa este archivo y su motor JS
+// no garantiza TextDecoder. Las funciones de cifrado web solo corren en el navegador.
+const enc = { encode: (s: string) => new TextEncoder().encode(s) };
+const dec = { decode: (b: ArrayBuffer) => new TextDecoder().decode(b) };
 const toB64 = (b: Uint8Array) => btoa(String.fromCharCode(...b));
 const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 

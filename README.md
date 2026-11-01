@@ -48,6 +48,10 @@ npm run dev                   # abre la URL que imprime (por defecto http://loca
 
 Requisitos: Node.js 20 o superior (`node -v`).
 
+## App móvil (Expo Go)
+
+La versión nativa vive en `chia-mobile/`. Instrucciones en [chia-mobile/README.md](chia-mobile/README.md).
+
 ## Development
 
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).

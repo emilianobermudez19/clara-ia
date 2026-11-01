@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Chía",
+    "slug": "chia",
+    "scheme": "chia",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": { "image": "./assets/icon.png", "resizeMode": "contain", "backgroundColor": "#5A3E85" },
+    "ios": { "supportsTablet": false, "bundleIdentifier": "app.chia.mobile" },
+    "android": {
+      "package": "app.chia.mobile",
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#5A3E85" }
+    },
+    "plugins": ["expo-router", "expo-secure-store", "expo-notifications"],
+    "experiments": { "typedRoutes": false }
+  }
+}

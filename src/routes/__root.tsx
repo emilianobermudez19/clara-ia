@@ -136,7 +136,7 @@ function RootComponent() {
 
   // Service worker: permite instalar Chía en la pantalla de inicio (iOS y Android) y prepara los avisos push.
   useEffect(() => {
-    if (!("serviceWorker" in navigator) || import.meta.env.DEV) return;
+    if (!("serviceWorker" in navigator) || import.meta.env["DEV"]) return;
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   }, []);
 
