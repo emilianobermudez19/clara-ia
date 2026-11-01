@@ -3,7 +3,9 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { ArrowUp, Compass, Phone, ChevronLeft, Globe } from "lucide-react";
+import { ArrowUp, Phone, ChevronLeft, Globe } from "lucide-react";
+import { LogoMark } from "@/components/Logo";
+import { useLanguageMode } from "@/lib/mode";
 import { detectCrisis, HELPLINES } from "@/lib/crisis";
 import { IntentCTA } from "@/components/QuickExit";
 import { useI18n } from "@/lib/i18n";
@@ -44,7 +46,11 @@ function CrisisCards() {
 
 function Chat() {
   const { t } = useI18n();
-  const { messages, sendMessage, status, error } = useChat({ transport: new DefaultChatTransport({ api: "/api/chat" }) });
+  const { mode, setMode } = useLanguageMode();
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+  const [transport] = useState(() => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode: modeRef.current }) }));
+  const { messages, sendMessage, status, error } = useChat({ transport });
   const [input, setInput] = useState("");
   const [crisisAt, setCrisisAt] = useState<Set<string>>(new Set());
   const endRef = useRef<HTMLDivElement>(null);
@@ -77,11 +83,31 @@ function Chat() {
 
   return (
     <main className="mx-auto flex h-dvh max-w-md flex-col">
-      <header className="flex items-center gap-2 border-b border-border px-4 py-4 pl-4 pr-44 pt-16">
-        <Link to="/" aria-label={t.chatBack}><ChevronLeft className="h-5 w-5 text-muted-foreground" /></Link>
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Compass className="h-4 w-4" /></div>
-        <div><p className="font-semibold leading-none text-foreground">Chia</p><p className="text-xs text-muted-foreground">{t.chatTag}</p></div>
+      <header className="mt-16 flex items-center gap-3 border-b border-border bg-card px-3 py-2.5">
+        <Link to="/" aria-label={t.chatBack} className="flex h-11 w-11 items-center justify-center rounded-full">
+          <ChevronLeft className="h-5 w-5 text-foreground" />
+        </Link>
+        <LogoMark className="h-7 w-7 text-primary" />
+        <div className="mr-auto">
+          <p className="font-bold leading-none text-foreground">Chía</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t.chatTag}</p>
+        </div>
+        <div role="radiogroup" aria-label={t.modeGroup} className="flex rounded-full bg-secondary p-0.5">
+          {(["easy", "technical"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="radio"
+              aria-checked={mode === m}
+              onClick={() => setMode(m)}
+              className={`min-h-10 rounded-full px-3 text-sm ${mode === m ? "bg-primary font-bold text-primary-foreground" : "font-semibold text-secondary-foreground"}`}
+            >
+              {m === "easy" ? t.modeEasy : t.modeTech}
+            </button>
+          ))}
+        </div>
       </header>
+      <p className="bg-secondary px-4 py-2 text-center text-[13px] text-secondary-foreground">{t.chatTemp}</p>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
         {messages.length === 0 && (
@@ -89,18 +115,18 @@ function Chat() {
             <p className="font-display text-2xl text-foreground">{t.chatHello}</p>
             <p className="mt-2 text-sm text-muted-foreground">{t.chatIntro}</p>
             <div className="mt-5 flex flex-wrap gap-2">
-              {t.chatSuggestions.map((s) => <button key={s} onClick={() => send(s)} className="rounded-full border border-border px-3 py-2 text-left text-sm text-foreground">{s}</button>)}
+              {t.chatSuggestions.map((s) => <button key={s} onClick={() => send(s)} className="min-h-11 rounded-full bg-secondary px-4 py-2 text-left text-[15px] font-medium text-secondary-foreground">{s}</button>)}
             </div>
           </div>
         )}
         {messages.map((m) => (
           <div key={m.id} className="space-y-3">
             {m.role === "user" ? (
-              <div className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-primary-foreground">
+              <div className="ml-auto w-fit max-w-[85%] rounded-[20px] rounded-br-md bg-primary px-4 py-3 leading-relaxed text-primary-foreground">
                 {m.parts.map((p, i) => (p.type === "text" ? <span key={i}>{p.text}</span> : null))}
               </div>
             ) : (
-              <div className="prose prose-sm max-w-none text-foreground [&_a]:text-primary">
+              <div className="max-w-[92%] rounded-[20px] rounded-bl-md border border-border bg-card px-4 py-3 leading-relaxed text-foreground [&_a]:font-semibold [&_a]:text-primary [&_li]:ml-5 [&_li]:list-disc [&_p+p]:mt-2 [&_strong]:font-bold [&_ul]:mt-2">
                 {m.parts.map((p, i) => (p.type === "text" ? <ReactMarkdown key={i}>{p.text}</ReactMarkdown> : null))}
               </div>
             )}
@@ -114,7 +140,7 @@ function Chat() {
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="border-t border-border p-3">
-        <div className="flex items-end gap-2 rounded-3xl border border-input bg-card p-2">
+        <div className="flex items-end gap-2 rounded-[28px] border-[1.5px] border-input bg-card p-1.5 pl-3">
           <textarea
             ref={inputRef} rows={1} value={input} autoFocus
             onChange={(e) => setInput(e.target.value)}
@@ -122,11 +148,11 @@ function Chat() {
             placeholder={t.chatPlaceholder}
             className="max-h-32 flex-1 resize-none bg-transparent px-2 py-2 text-foreground outline-none placeholder:text-muted-foreground"
           />
-          <button type="submit" disabled={busy || !input.trim()} aria-label="Enviar" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40">
+          <button type="submit" disabled={busy || !input.trim()} aria-label={t.chatSend} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40">
             <ArrowUp className="h-5 w-5" />
           </button>
         </div>
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">{t.chatDisclaimer}</p>
+        <p className="mt-2 text-center text-[13px] leading-snug text-muted-foreground">{t.chatDisclaimer}</p>
       </form>
     </main>
   );

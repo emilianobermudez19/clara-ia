@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, type UIMessage } from "ai";
 import { createResponsesCall } from "@/server/ai/responses";
+import { modeInstruction } from "@/lib/mode";
 
 const SYSTEM = `You are "Chia", an educational sexual health guide for an international audience.
 - Always reply in the language the user writes in (Spanish or English). If they switch languages, switch with them.
@@ -18,12 +19,12 @@ export const Route = createFileRoute("/api/chat")({
       POST: async ({ request }) => {
         const apiKey = process.env['LOVABLE_API_KEY'];
         if (!apiKey) return new Response("Falta configuración de IA", { status: 500 });
-        const { messages } = (await request.json()) as { messages: UIMessage[] };
+        const { messages, mode } = (await request.json()) as { messages: UIMessage[]; mode?: unknown };
         const call = createResponsesCall(
           request,
           { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
           await convertToModelMessages(messages.slice(-30)),
-          SYSTEM,
+          `${SYSTEM}\n\n${modeInstruction(mode)}`,
         );
         return call.response();
       },
