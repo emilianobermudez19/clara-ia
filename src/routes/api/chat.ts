@@ -13,7 +13,7 @@ const SYSTEM = `You are "Chia", an educational sexual health guide for an intern
 - If you detect crisis, self-harm, violence or abuse: drop the casual tone, validate, prioritize safety, suggest calling the local emergency number and visiting findahelpline.com to find official helplines in their country.
 - Keep answers short (max ~180 words), with bullet points when helpful.`;
 
-export export const Route = createFileRoute("/api/chat")({
+export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
