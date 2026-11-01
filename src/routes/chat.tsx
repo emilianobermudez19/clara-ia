@@ -62,6 +62,19 @@ function Chat() {
 
   const send = (txt: string) => { if (!txt.trim() || busy) return; sendMessage({ text: txt }); setInput(""); };
 
+  // Pregunta que viene del inicio (?q=...). Se envía una vez y se quita de la URL para no dejar rastro en el historial.
+  const sentInitial = useRef(false);
+  useEffect(() => {
+    if (sentInitial.current) return;
+    sentInitial.current = true;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) {
+      window.history.replaceState(null, "", window.location.pathname);
+      send(q.slice(0, 500));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <main className="mx-auto flex h-dvh max-w-md flex-col">
       <header className="flex items-center gap-2 border-b border-border px-4 py-4 pl-4 pr-44 pt-16">

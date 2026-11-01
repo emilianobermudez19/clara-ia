@@ -83,13 +83,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Chia — Anonymous sexual health" },
       { name: "description", content: "Anonymous, judgment-free AI sexual health guidance. Orientación de salud sexual con IA, anónima y sin juicios." },
-      { name: "author", content: "Lovable" },
+      { name: "author", content: "Chía" },
       { property: "og:title", content: "Chia — Anonymous sexual health" },
       { property: "og:description", content: "Anonymous, judgment-free AI sexual health guidance, in Spanish and English." },
       { name: "referrer", content: "no-referrer" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -97,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
