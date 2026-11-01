@@ -25,6 +25,29 @@ Continue developing this project in the [Lovable editor](https://lovable.dev/pro
 - **Stay in sync**: every change made in Lovable is committed straight to this repository.
 - **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
+## Desarrollo local (Chía)
+
+```bash
+# 1. Clona en una carpeta nueva (no dentro de otra carpeta con package.json)
+git clone https://github.com/emilianobermudez19/clara-ia.git
+cd clara-ia
+
+# 2. Trae todas las ramas remotas antes de cambiarte a una
+git fetch origin
+git switch diseno-chia        # o cualquier otra rama: git branch -r las lista
+
+# 3. Comprueba que estás en el proyecto correcto: debe mostrar "test" y "dev"
+npm pkg get scripts
+
+# 4. Instala, prueba y levanta
+npm install
+npm test                      # vitest: crisis, países, modo, rutas
+cp .env.example .env          # pon LOVABLE_API_KEY para que el chat responda
+npm run dev                   # abre la URL que imprime (por defecto http://localhost:5173 o la que indique Vite)
+```
+
+Requisitos: Node.js 20 o superior (`node -v`).
+
 ## Development
 
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
