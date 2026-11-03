@@ -8,8 +8,6 @@
     "app/**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "expo-env.d.ts",
-    "../src/lib/**/*.ts",
-    "../src/content/**/*.ts"
+    "expo-env.d.ts"
   ]
 }

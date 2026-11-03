@@ -2,7 +2,7 @@
 // y no necesitan servidor. Discreción: el aviso nunca dice el nombre del medicamento.
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-import type { Reminder } from "../../src/lib/vault";
+import type { Reminder } from "./shared/lib/vault";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

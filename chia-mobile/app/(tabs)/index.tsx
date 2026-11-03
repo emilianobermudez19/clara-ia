@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { nextDose } from "../../../src/lib/vault";
+import { nextDose } from "../../src/shared/lib/vault";
 import { Categories } from "../../src/Categories";
 import { TopBar } from "../../src/TopBar";
 import { useVault } from "../../src/vault";

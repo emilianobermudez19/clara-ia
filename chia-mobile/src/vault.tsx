@@ -12,7 +12,7 @@ import { pbkdf2Async } from "@noble/hashes/pbkdf2.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { AppState } from "react-native";
-import { emptyProfile, normalizeProfile, type Profile } from "../../src/lib/vault";
+import { emptyProfile, normalizeProfile, type Profile } from "./shared/lib/vault";
 import { clearReminders, syncReminders } from "./notifications";
 
 const BLOB = "chia-vault-v1";
