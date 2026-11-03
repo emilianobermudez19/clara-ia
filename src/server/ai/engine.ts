@@ -5,6 +5,7 @@ import { convertToModelMessages, type ModelMessage, type UIMessage } from "ai";
 import { pickProvider, lastUserText } from "./providers";
 import { buildSystemPrompt, type Channel } from "./master-prompt";
 import { MEDIA_IDS, mediaToLinks } from "@/lib/media";
+import { enforceOtcRules } from "@/lib/otc-guard";
 
 type Env = Record<string, string | undefined>;
 const MAX_TURNS = 30;
@@ -13,7 +14,7 @@ const MAX_TURNS = 30;
 export async function streamWebReply(opts: { request: Request; ui: UIMessage[]; mode: unknown; topic?: unknown; health?: unknown; env: Env }): Promise<Response> {
   const ui = opts.ui.slice(-MAX_TURNS);
   const provider = pickProvider(opts.env);
-  const system = buildSystemPrompt({ mode: opts.mode, topic: opts.topic, health: opts.health, channel: "web", mediaIds: MEDIA_IDS });
+  const system = buildSystemPrompt({ mode: opts.mode, topic: opts.topic, health: opts.health, channel: "web", mediaIds: MEDIA_IDS, lastUserText: lastUserText(ui) });
   try {
     return await provider.respond({ request: opts.request, ui, model: await convertToModelMessages(ui), system });
   } catch (err) {
@@ -42,7 +43,7 @@ export async function textReply(opts: {
   const history = opts.history.slice(-MAX_TURNS);
   const lastUser = [...history].reverse().find((t) => t.role === "user")?.text ?? "";
   const model: ModelMessage[] = history.map((t) => ({ role: t.role, content: t.text }));
-  const system = buildSystemPrompt({ mode: opts.mode, topic: opts.topic, health: opts.health, channel: opts.channel, mediaIds: MEDIA_IDS });
+  const system = buildSystemPrompt({ mode: opts.mode, topic: opts.topic, health: opts.health, channel: opts.channel, mediaIds: MEDIA_IDS, lastUserText: lastUser });
   const provider = pickProvider(opts.env);
   let text: string;
   try {
@@ -51,6 +52,7 @@ export async function textReply(opts: {
     console.error("[chia] provider failed, using demo", provider.name, err);
     text = await pickProvider({ CHIA_AI_PROVIDER: "mock" }).text({ model, system, lastUser });
   }
+  text = enforceOtcRules(text);
   return opts.keepMedia ? text : mediaToLinks(text, opts.publicUrl);
 }
 

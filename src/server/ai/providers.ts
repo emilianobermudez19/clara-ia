@@ -17,6 +17,9 @@ import { createUIMessageStream, createUIMessageStreamResponse, generateText, str
 import { createResponsesCall } from "./responses";
 import { mockAnswer } from "@/lib/mock-answers";
 
+/** Respuestas clínicas: poca aleatoriedad y longitud acotada (también controla el costo). */
+export const GENERATION = { temperature: 0.3, maxOutputTokens: 700 } as const;
+
 export type ProviderName = "openai" | "groq" | "openrouter" | "lovable" | "openai-compatible" | "mock";
 
 export interface ChatProvider {
@@ -44,7 +47,7 @@ const lovable = (apiKey: string, model: string): ChatProvider => ({
     createResponsesCall(request, { baseURL: LOVABLE_URL, apiKey, model }, messages, system).response(),
   text: async ({ model: messages, system }) => {
     const p = createOpenAI({ baseURL: LOVABLE_URL, apiKey, headers: { "Lovable-API-Key": apiKey } });
-    return (await generateText({ model: p.chat(model), system, messages })).text;
+    return (await generateText({ model: p.chat(model), system, messages, ...GENERATION })).text;
   },
 });
 
@@ -53,8 +56,8 @@ const openaiCompatible = (name: ProviderName, baseURL: string, model: string, ap
   return {
     name,
     respond: ({ request, model: messages, system }) =>
-      streamText({ model: p.chat(model), system, messages, abortSignal: request.signal }).toUIMessageStreamResponse(),
-    text: async ({ model: messages, system }) => (await generateText({ model: p.chat(model), system, messages })).text,
+      streamText({ model: p.chat(model), system, messages, abortSignal: request.signal, ...GENERATION }).toUIMessageStreamResponse(),
+    text: async ({ model: messages, system }) => (await generateText({ model: p.chat(model), system, messages, ...GENERATION })).text,
   };
 };
 

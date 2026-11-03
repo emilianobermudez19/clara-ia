@@ -9,7 +9,7 @@ describe("orientación de venta libre (OTC)", () => {
   it("puede orientar sobre OTC pero sin dosis y con deslinde", () => {
     expect(base).toMatch(/OVER-THE-COUNTER/);
     expect(base).toMatch(/Never give doses or schedules/);
-    expect(base).toMatch(/Consulta a tu farmacéutico o médico para la dosis exacta/);
+    expect(base).toContain("Consulta a tu médico o farmacéutico para la dosis exacta.");
   });
   it("sin ficha, pregunta alergias y condiciones antes de sugerir", () => expect(base).toMatch(/If there is NO health record, first ask/));
   it("nunca OTC para niños", () => expect(base).toMatch(/Never suggest OTC options for children/));

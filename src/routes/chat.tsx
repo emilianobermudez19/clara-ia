@@ -7,6 +7,7 @@ import { ArrowUp, Phone, ChevronLeft, Globe } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { ChatMedia } from "@/components/ChatMedia";
 import { splitMedia } from "@/lib/media";
+import { enforceOtcRules } from "@/lib/otc-guard";
 import { useVault } from "@/lib/vault-context";
 import { healthContextFrom, newId, upsertConsultation } from "@/lib/vault";
 import { isTopic, type Topic } from "@/lib/topics";
@@ -190,7 +191,7 @@ function Chat() {
               <div className="max-w-[92%] rounded-[20px] rounded-bl-md border border-border bg-card px-4 py-3 leading-relaxed text-foreground [&_a]:font-semibold [&_a]:text-primary [&_li]:ml-5 [&_li]:list-disc [&_p+p]:mt-2 [&_strong]:font-bold [&_ul]:mt-2">
                 {m.parts.map((p, i) =>
                   p.type === "text"
-                    ? splitMedia(p.text).map((part, j) =>
+                    ? splitMedia(enforceOtcRules(p.text)).map((part, j) =>
                         part.type === "media" ? <ChatMedia key={`${i}-${j}`} id={part.id} /> : <ReactMarkdown key={`${i}-${j}`}>{part.text}</ReactMarkdown>,
                       )
                     : null,
