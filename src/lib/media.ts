@@ -1,7 +1,7 @@
 // Multimedia en el chat: la IA NUNCA inserta URLs ni imágenes arbitrarias.
 // Solo puede pedir piezas de esta biblioteca, ya revisadas, escribiendo [[media:<id>]].
 // La interfaz las dibuja (web) o las convierte en un enlace (WhatsApp).
-import { GUIDES } from "@/content/guides";
+import { GUIDES } from "../content/guides";
 
 export const MEDIA_IDS = GUIDES.map((g) => g.id);
 

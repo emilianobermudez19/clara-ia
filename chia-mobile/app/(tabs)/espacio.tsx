@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BLOOD_TYPES, COMMON_VACCINES, newId, nextDose, type BloodType, type Profile, type Vaccine } from "@/lib/vault";
+import { BLOOD_TYPES, COMMON_VACCINES, newId, nextDose, type BloodType, type Profile, type Vaccine } from "../../../src/lib/vault";
 import { ensurePermission } from "../../src/notifications";
 import { TopBar } from "../../src/TopBar";
 import { Button, Card, Field, H1, H2, P, Segmented } from "../../src/ui";

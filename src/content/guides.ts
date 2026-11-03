@@ -5,8 +5,8 @@
 // - Cada guía lleva fuentes y, antes de publicarse como "revisada", el nombre del profesional y la fecha.
 // - Multimedia solo con licencia libre verificada (CC0, CC BY, dominio público) o material propio.
 // - Los videos se cargan solo cuando la persona toca "Ver video" (sin rastreo previo).
-import type { Lang } from "@/lib/i18n";
-import type { IlloName } from "@/components/Illustrations";
+import type { Lang } from "../lib/i18n";
+import type { IlloName } from "../components/Illustrations";
 
 export type L = Record<Lang, string>;
 

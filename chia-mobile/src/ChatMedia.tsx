@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { GUIDES } from "@/content/guides";
+import { GUIDES } from "../../src/content/guides";
 import { C, R } from "./theme";
 
 // Guía visual dentro de una respuesta: solo piezas de la biblioteca revisada (src/content de la web).

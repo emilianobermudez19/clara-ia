@@ -1,4 +1,4 @@
-import type { Topic } from "@/lib/topics";
+import type { Topic } from "../../src/lib/topics";
 
 // Las 4 categorías con su ícono (Ionicons) y la primera pregunta que se envía al abrir el chat.
 export const TOPIC_UI: { k: Topic; label: string; sub: string; icon: "medkit" | "heart" | "pulse" | "business"; start: string }[] = [

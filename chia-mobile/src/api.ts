@@ -1,7 +1,7 @@
 // Conversación con el motor clínico de Chía (master prompt, roles y reglas viven en el servidor web).
 // La app nunca guarda claves de IA. Sin servidor configurado, responde en modo demostración.
-import { mockAnswer } from "@/lib/mock-answers";
-import type { Topic } from "@/lib/topics";
+import { mockAnswer } from "../../src/lib/mock-answers";
+import type { Topic } from "../../src/lib/topics";
 
 export interface Turn { role: "user" | "assistant"; text: string }
 export interface HealthContext { allergies: string; conditions: string; medications: string; bloodType?: string; vaccines?: string }
