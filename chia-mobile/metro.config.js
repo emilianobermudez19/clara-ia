@@ -12,11 +12,15 @@ config.watchFolders = [webSrc];
 config.resolver.nodeModulesPaths = [path.resolve(projectRoot, "node_modules")];
 config.resolver.disableHierarchicalLookup = true;
 
+// "@/lib/crisis" → <repo>/src/lib/crisis (ruta absoluta). Expo trae su propio alias por tsconfig;
+// está desactivado en app.json (experiments.tsconfigPaths: false) para que no choque con este.
+const upstream = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+  const resolve = upstream ?? context.resolveRequest;
   if (moduleName.startsWith("@/")) {
-    return context.resolveRequest(context, path.join(webSrc, moduleName.slice(2)), platform);
+    return resolve(context, path.join(webSrc, moduleName.slice(2)), platform);
   }
-  return context.resolveRequest(context, moduleName, platform);
+  return resolve(context, moduleName, platform);
 };
 
 module.exports = config;
