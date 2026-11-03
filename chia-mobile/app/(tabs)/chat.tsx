@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { detectCrisis, HELPLINES } from "@/lib/crisis";
 import { splitMedia } from "@/lib/media";
 import { isTopic, type Topic } from "@/lib/topics";
-import { newId, upsertConsultation } from "@/lib/vault";
+import { healthContextFrom, newId, upsertConsultation } from "@/lib/vault";
 import { askChia, hasServer, type Turn } from "../../src/api";
 import { ChatMedia } from "../../src/ChatMedia";
 import { RichText } from "../../src/RichText";
@@ -41,9 +41,7 @@ export default function Chat() {
     setInput("");
     if (detectCrisis(text)) setCrisisAt((c) => [...c, history.length - 1]);
     setBusy(true);
-    const health = useRecord && vault.profile
-      ? { allergies: vault.profile.allergies, conditions: vault.profile.conditions, medications: vault.profile.medications }
-      : null;
+    const health = useRecord && vault.profile ? healthContextFrom(vault.profile) : null;
     const reply = await askChia({ history, mode, topic: activeTopic, health });
     const full: Turn[] = [...history, { role: "assistant", text: reply }];
     setTurns(full);

@@ -43,6 +43,14 @@ export interface Vaccine {
   dose: string; // p. ej. "1.ª dosis", "Refuerzo"
 }
 
+/** Datos de la ficha que se comparten con la IA cuando la persona activa "Usar mi ficha". */
+export function healthContextFrom(p: Profile) {
+  const vaccines = p.vaccines
+    .map((v) => `${v.name}${v.dose ? ` ${v.dose}` : ""} (${v.status === "applied" ? `applied${v.date ? ` ${v.date}` : ""}` : "pending"})`)
+    .join("; ");
+  return { allergies: p.allergies, conditions: p.conditions, medications: p.medications, bloodType: p.bloodType, vaccines };
+}
+
 /** Vacunas frecuentes en adultos, para agregarlas con un toque. */
 export const COMMON_VACCINES = ["VPH", "Hepatitis B", "Tétanos y difteria (Td)", "Influenza", "COVID-19", "Hepatitis A", "Sarampión, rubéola y paperas (SRP)"] as const;
 
@@ -112,7 +120,12 @@ export const isValidPin = (pin: string) => /^\d{6}$/.test(pin);
 // no garantiza TextDecoder. Las funciones de cifrado web solo corren en el navegador.
 const enc = { encode: (s: string) => new TextEncoder().encode(s) };
 const dec = { decode: (b: ArrayBuffer) => new TextDecoder().decode(b) };
-const toB64 = (b: Uint8Array) => btoa(String.fromCharCode(...b));
+// Sin "...spread": con fichas grandes (muchas consultas) el spread excede el límite de argumentos.
+const toB64 = (b: Uint8Array) => {
+  let s = "";
+  for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000));
+  return btoa(s);
+};
 const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 
 async function deriveKey(pin: string, salt: Uint8Array): Promise<CryptoKey> {
@@ -126,20 +139,50 @@ async function deriveKey(pin: string, salt: Uint8Array): Promise<CryptoKey> {
   );
 }
 
-export async function sealProfile(profile: Profile, pin: string): Promise<SealedVault> {
+async function sealJSON(value: unknown, pin: string): Promise<SealedVault> {
   if (!isValidPin(pin)) throw new Error("invalid pin");
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveKey(pin, salt);
-  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(JSON.stringify(profile))));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(JSON.stringify(value))));
   return { v: 1, salt: toB64(salt), iv: toB64(iv), ciphertext: toB64(ct) };
 }
 
-/** Lanza error si el PIN es incorrecto o los datos fueron alterados. */
-export async function openProfile(sealed: SealedVault, pin: string): Promise<Profile> {
+async function openJSON(sealed: SealedVault, pin: string): Promise<unknown> {
   const key = await deriveKey(pin, fromB64(sealed.salt));
-  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(sealed.iv) }, key, fromB64(sealed.ciphertext));
-  return normalizeProfile(JSON.parse(dec.decode(pt)) as Profile);
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(sealed.iv) as BufferSource }, key, fromB64(sealed.ciphertext) as BufferSource);
+  return JSON.parse(dec.decode(pt));
+}
+
+/** Credenciales de la cuenta en la nube, guardadas en el dispositivo bajo el PIN. */
+export interface CloudCreds {
+  email: string;
+  /** Clave de acceso derivada (no la contraseña real): permite reconectar al desbloquear con el PIN. */
+  authSecret: string;
+  /** Clave de datos (base64). */
+  dek: string;
+  revision: number;
+}
+
+/** Lo que se guarda en el dispositivo, cifrado con el PIN. */
+export interface LocalBundle {
+  profile: Profile;
+  cloud: CloudCreds | null;
+}
+
+export const sealBundle = (b: LocalBundle, pin: string) => sealJSON({ bundle: 1, ...b }, pin);
+
+/** Abre el contenido local. Acepta el formato anterior (solo la ficha). Lanza error si el PIN es incorrecto. */
+export async function openBundle(sealed: SealedVault, pin: string): Promise<LocalBundle> {
+  const raw = (await openJSON(sealed, pin)) as { bundle?: number; profile?: Profile; cloud?: CloudCreds | null } & Profile;
+  if (raw.bundle === 1 && raw.profile) return { profile: normalizeProfile(raw.profile), cloud: raw.cloud ?? null };
+  return { profile: normalizeProfile(raw), cloud: null };
+}
+
+export const sealProfile = (profile: Profile, pin: string) => sealBundle({ profile, cloud: null }, pin);
+
+export async function openProfile(sealed: SealedVault, pin: string): Promise<Profile> {
+  return (await openBundle(sealed, pin)).profile;
 }
 
 export function readVault(): SealedVault | null {

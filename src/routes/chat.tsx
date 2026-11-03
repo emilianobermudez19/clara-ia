@@ -8,7 +8,7 @@ import { LogoMark } from "@/components/Logo";
 import { ChatMedia } from "@/components/ChatMedia";
 import { splitMedia } from "@/lib/media";
 import { useVault } from "@/lib/vault-context";
-import { newId, upsertConsultation } from "@/lib/vault";
+import { healthContextFrom, newId, upsertConsultation } from "@/lib/vault";
 import { isTopic, type Topic } from "@/lib/topics";
 import { useLanguageMode } from "@/lib/mode";
 import { detectCrisis, HELPLINES } from "@/lib/crisis";
@@ -68,7 +68,7 @@ function Chat() {
   const topicRef = useRef<Topic | null>(null);
   const [topic, setTopic] = useState<Topic | null>(null);
   // Ficha compartida SOLO si la persona lo activa en esta consulta (apagado por defecto).
-  const healthRef = useRef<{ allergies: string; conditions: string; medications: string } | null>(null);
+  const healthRef = useRef<ReturnType<typeof healthContextFrom> | null>(null);
   const [transport] = useState(
     () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode: modeRef.current, topic: topicRef.current, health: healthRef.current }) }),
   );
@@ -92,10 +92,7 @@ function Chat() {
   const vault = useVault();
   const [save, setSave] = useState(false);
   const [useRecord, setUseRecord] = useState(false);
-  healthRef.current =
-    useRecord && vault.profile
-      ? { allergies: vault.profile.allergies, conditions: vault.profile.conditions, medications: vault.profile.medications }
-      : null;
+  healthRef.current = useRecord && vault.profile ? healthContextFrom(vault.profile) : null;
   const consultId = useRef(newId());
   useEffect(() => {
     if (!save || !vault.profile || status !== "ready" || messages.length < 2) return;

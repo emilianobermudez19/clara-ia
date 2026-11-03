@@ -69,6 +69,8 @@ function Dashboard({ c, profile }: { c: Copy; profile: Profile }) {
         </button>
       </div>
 
+      <SyncBadge c={c} />
+
       <button onClick={() => setTab("reminders")} className="flex w-full items-center gap-4 rounded-[20px] bg-primary p-4 text-left text-primary-foreground">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-foreground/15"><CalendarClock className="h-6 w-6" /></span>
         <span className="flex flex-col">
@@ -286,7 +288,7 @@ function Record({ c, profile }: { c: Copy; profile: Profile }) {
       </button>
       {status === "saved" && <p role="status" className="text-center text-sm font-semibold text-accent-foreground">{c.saved}</p>}
 
-      <button onClick={() => { if (window.confirm(c.removeConfirm)) vault.remove(); }} className="mx-auto flex min-h-11 items-center gap-1.5 text-sm font-semibold text-destructive">
+      <button onClick={() => { if (window.confirm(vault.account ? c.removeConfirmCloud : c.removeConfirm)) void vault.remove(); }} className="mx-auto flex min-h-11 items-center gap-1.5 text-sm font-semibold text-destructive">
         <Trash2 className="h-4 w-4" /> {c.remove}
       </button>
     </section>
@@ -446,5 +448,21 @@ function Vaccines({ c, profile }: { c: Copy; profile: Profile }) {
         <button type="submit" className={primaryBtn}><Plus className="h-5 w-5" /> {c.vacAdd}</button>
       </form>
     </div>
+  );
+}
+
+function SyncBadge({ c }: { c: Copy }) {
+  const vault = useVault();
+  const text =
+    vault.sync === "local" ? c.syncLocal
+    : vault.sync === "syncing" ? c.syncSyncing
+    : vault.sync === "offline" ? c.syncOffline
+    : c.syncSynced;
+  const tone = vault.sync === "offline" ? "bg-muted text-foreground" : "bg-secondary text-secondary-foreground";
+  return (
+    <p role="status" className={`flex items-center gap-2 rounded-2xl px-3 py-2 text-sm ${tone}`}>
+      {vault.sync === "local" ? <Lock className="h-4 w-4 shrink-0" /> : <ShieldCheck className="h-4 w-4 shrink-0" />}
+      <span>{text}{vault.account ? ` · ${vault.account}` : ""}</span>
+    </p>
   );
 }

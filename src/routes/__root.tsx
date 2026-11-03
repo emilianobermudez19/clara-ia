@@ -15,6 +15,7 @@ import { QuickExit } from "../components/QuickExit";
 import { Header } from "../components/Header";
 import { I18nProvider } from "../lib/i18n";
 import { VaultProvider } from "../lib/vault-context";
+import { RecoveryKeyOverlay } from "../components/Account";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -148,6 +149,7 @@ function RootComponent() {
           <Header />
           <QuickExit />
           <Outlet />
+          <RecoveryKeyOverlay />
         </VaultProvider>
       </I18nProvider>
     </QueryClientProvider>

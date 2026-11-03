@@ -4,6 +4,7 @@ import { Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useVault } from "@/lib/vault-context";
 import { AUTH_COPY, CreateForm } from "@/components/Auth";
+import { CloudSignIn, CloudSignUp, useAccountCopy } from "@/components/Account";
 import { LogoMark } from "@/components/Logo";
 
 // Pantalla de entrada tipo app nativa: logo centrado, PIN de 6 dígitos o crear cuenta,
@@ -12,8 +13,15 @@ export function AuthGate() {
   const { t, lang } = useI18n();
   const c = AUTH_COPY[lang];
   const vault = useVault();
-  const [mode, setMode] = useState<"unlock" | "create">(vault.exists ? "unlock" : "create");
-  useEffect(() => setMode(vault.exists ? "unlock" : "create"), [vault.exists]);
+  const a = useAccountCopy();
+  type Mode = "unlock" | "signup" | "signin" | "local";
+  const initial = (): Mode => (vault.exists ? "unlock" : vault.cloudEnabled ? "signup" : "local");
+  const [mode, setMode] = useState<Mode>(initial);
+  useEffect(() => setMode(initial()), [vault.exists]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const link = (to: Mode, text: string) => (
+    <button key={to} type="button" onClick={() => setMode(to)} className="min-h-11 w-full text-sm font-semibold text-primary">{text}</button>
+  );
 
   return (
     <div
@@ -33,17 +41,17 @@ export function AuthGate() {
         </div>
 
         <section className="rounded-[28px] bg-card p-5 text-foreground shadow-xl">
-          {mode === "unlock" ? (
-            <PinUnlock />
-          ) : (
-            <>
-              <h2 className="text-xl font-bold">{t.gateCreate}</h2>
-              <CreateForm c={c} />
-            </>
-          )}
-          {vault.exists && mode === "create" && (
-            <button onClick={() => setMode("unlock")} className="mt-3 min-h-11 w-full text-sm font-semibold text-primary">{t.gateHaveAccount}</button>
-          )}
+          {mode === "unlock" && <PinUnlock />}
+          {mode === "signup" && (<><h2 className="text-xl font-bold">{t.gateCreate}</h2><CloudSignUp /></>)}
+          {mode === "signin" && (<><h2 className="text-xl font-bold">{t.gateEnter}</h2><CloudSignIn /></>)}
+          {mode === "local" && (<><h2 className="text-xl font-bold">{t.gateCreate}</h2><CreateForm c={c} /></>)}
+
+          <div className="mt-2 border-t border-border pt-2">
+            {mode !== "unlock" && vault.exists && link("unlock", t.gateHaveAccount)}
+            {vault.cloudEnabled && mode !== "signin" && link("signin", a.haveAccount)}
+            {vault.cloudEnabled && mode !== "signup" && link("signup", mode === "local" ? a.useCloud : a.newAccount)}
+            {mode === "signup" && link("local", a.localOnly)}
+          </div>
         </section>
 
         <Link

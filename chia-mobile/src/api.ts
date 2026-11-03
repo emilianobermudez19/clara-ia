@@ -4,7 +4,7 @@ import { mockAnswer } from "@/lib/mock-answers";
 import type { Topic } from "@/lib/topics";
 
 export interface Turn { role: "user" | "assistant"; text: string }
-export interface HealthContext { allergies: string; conditions: string; medications: string }
+export interface HealthContext { allergies: string; conditions: string; medications: string; bloodType?: string; vaccines?: string }
 
 const API = process.env.EXPO_PUBLIC_CHIA_API_URL?.replace(/\/$/, "");
 export const hasServer = !!API;

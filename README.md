@@ -48,6 +48,10 @@ npm run dev                   # abre la URL que imprime (por defecto http://loca
 
 Requisitos: Node.js 20 o superior (`node -v`).
 
+## Cuentas y base de datos
+
+Cuentas con correo, sincronizadas y cifradas de extremo a extremo con Supabase. Configuración en [supabase/README.md](supabase/README.md).
+
 ## App móvil (Expo Go)
 
 La versión nativa vive en `chia-mobile/`. Instrucciones en [chia-mobile/README.md](chia-mobile/README.md).
