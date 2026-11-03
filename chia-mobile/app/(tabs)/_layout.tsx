@@ -15,6 +15,8 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: "shift",
+        sceneStyle: { backgroundColor: C.bg },
         tabBarActiveTintColor: C.primary,
         tabBarInactiveTintColor: C.muted,
         tabBarStyle: { backgroundColor: C.card, borderTopColor: C.border },
@@ -23,6 +25,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: "Inicio", tabBarIcon: ({ color, size }) => <Ionicons name="home" color={color} size={size} /> }} />
       <Tabs.Screen name="chat" options={{ title: "Consulta", tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble-ellipses" color={color} size={size} /> }} />
+      <Tabs.Screen name="guias" options={{ title: "Guías", tabBarIcon: ({ color, size }) => <Ionicons name="book" color={color} size={size} /> }} />
       <Tabs.Screen name="espacio" options={{ title: "Mi espacio", tabBarIcon: ({ color, size }) => <Ionicons name="person-circle" color={color} size={size} /> }} />
     </Tabs>
   );

@@ -87,6 +87,15 @@ export default function Home() {
             <Ionicons name="chevron-forward" size={20} color={C.leaf} />
           </Pressable>
 
+          <Pressable onPress={() => router.push("/guias")} style={st.row}>
+            <View style={st.rowIcon}><Ionicons name="book" size={22} color={C.primaryDark} /></View>
+            <View style={{ flex: 1 }}>
+              <Text style={st.rowTitle}>Guías, medicamentos y herbolaria</Text>
+              <Text style={st.rowSub}>Ilustradas, sin dosis y con advertencias.</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={C.muted} />
+          </Pressable>
+
           <Text style={st.disclaimer}>{DISCLAIMER}</Text>
         </ScrollView>
       </KeyboardAvoidingView>

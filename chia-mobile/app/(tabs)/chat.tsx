@@ -7,7 +7,7 @@ import { detectCrisis, HELPLINES } from "../../src/shared/lib/crisis";
 import { splitMedia } from "../../src/shared/lib/media";
 import { isTopic, type Topic } from "../../src/shared/lib/topics";
 import { healthContextFrom, newId, upsertConsultation } from "../../src/shared/lib/vault";
-import { askChia, hasServer, type Turn } from "../../src/api";
+import { aiMode, askChia, type Turn } from "../../src/api";
 import { ChatMedia } from "../../src/ChatMedia";
 import { RichText } from "../../src/RichText";
 import { TopBar } from "../../src/TopBar";
@@ -135,7 +135,7 @@ export default function Chat() {
             </View>
           ))}
           {busy && <View style={st.typing}><ActivityIndicator color={C.primary} /><Text style={st.muted}>Chía está escribiendo…</Text></View>}
-          {!hasServer && turns.length > 0 && <Text style={st.demo}>Modo demostración: configura EXPO_PUBLIC_CHIA_API_URL para usar la IA real.</Text>}
+          {aiMode === "demo" && turns.length > 0 && <Text style={st.demo}>Modo demostración: agrega EXPO_PUBLIC_GROQ_API_KEY en chia-mobile/.env para usar la IA real.</Text>}
         </ScrollView>
 
         <View style={st.inputBar}>

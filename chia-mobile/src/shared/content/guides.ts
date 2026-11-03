@@ -89,6 +89,34 @@ export const GUIDES: Guide[] = [
       { es: "Si hubo una exposición reciente, pregunta por PEP (antes de 72 h).", en: "If there was a recent exposure, ask about PEP (within 72 hours)." },
     ],
   },
+  {
+    id: "metodos-anticonceptivos",
+    t: { es: "Métodos anticonceptivos: cuál elegir", en: "Birth control methods: how to choose" },
+    min: 3,
+    illos: ["package"],
+    sources: [{ label: "OMS — Planificación familiar", url: "https://www.who.int/news-room/fact-sheets/detail/family-planning-contraception" }],
+    steps: [
+      { es: "Los más eficaces duran años y no dependen de recordar nada: implante y DIU (hormonal o de cobre).", en: "The most effective last for years and need no daily effort: implant and IUD (hormonal or copper)." },
+      { es: "De uso regular: pastilla diaria, parche semanal, anillo mensual o inyección cada 1 a 3 meses.", en: "Regular use: daily pill, weekly patch, monthly ring, or a shot every 1 to 3 months." },
+      { es: "El condón es el único que también protege de ITS; puedes combinarlo con cualquier otro método.", en: "Condoms are the only method that also protects against STIs; you can combine them with any other method." },
+      { es: "La anticoncepción de emergencia es un respaldo, no un método regular.", en: "Emergency contraception is a backup, not a regular method." },
+      { es: "En centros de salud públicos muchos métodos son gratuitos; ahí te ayudan a elegir según tu salud.", en: "Many methods are free at public health centers, where they help you choose based on your health." },
+    ],
+  },
+  {
+    id: "prep-pep",
+    t: { es: "PrEP y PEP: prevenir el VIH", en: "PrEP and PEP: preventing HIV" },
+    min: 2,
+    illos: ["clock"],
+    sources: [{ label: "OMS — VIH", url: "https://www.who.int/news-room/fact-sheets/detail/hiv-aids" }, { label: "CDC — PrEP", url: "https://www.cdc.gov/hiv/prevention/prep.html" }],
+    steps: [
+      { es: "PrEP: medicamento que toman personas sin VIH para no adquirirlo. Bien tomada, reduce mucho el riesgo por vía sexual.", en: "PrEP: a medicine people without HIV take to avoid getting it. Taken as directed, it greatly lowers sexual risk." },
+      { es: "PEP: tratamiento de emergencia después de una posible exposición. Debe empezar antes de 72 horas: cuanto antes, mejor.", en: "PEP: emergency treatment after a possible exposure. It must start within 72 hours: the sooner the better." },
+      { es: "Para PEP ve hoy a urgencias, a una clínica de VIH o a un centro de salud y di \"PEP\" al llegar.", en: "For PEP, go today to an ER, HIV clinic or health center and say \"PEP\" when you arrive." },
+      { es: "Ambas requieren valoración y receta; en México los CAPASITS y muchos servicios públicos las ofrecen sin costo.", en: "Both need an assessment and prescription; many public services offer them free of charge." },
+      { es: "Ninguna protege de otras ITS ni del embarazo: el condón sigue siendo tu aliado.", en: "Neither protects against other STIs or pregnancy: condoms are still your ally." },
+    ],
+  },
 ];
 
 export const MYTHS: Myth[] = [

@@ -9,7 +9,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <VaultProvider>
         <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false, animation: "fade", contentStyle: { backgroundColor: "#FAF8F5" } }} />
       </VaultProvider>
     </SafeAreaProvider>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useVault } from "./vault";
 import { LogoMark } from "./Logo";
@@ -10,17 +11,34 @@ import { C, R } from "./theme";
 // y la Consulta Express anónima siempre visible abajo.
 export function Splash() {
   const vault = useVault();
+  const { height } = useWindowDimensions();
   const [mode, setMode] = useState<"unlock" | "create">(vault.exists ? "unlock" : "create");
+  const [keyboard, setKeyboard] = useState(false);
   useEffect(() => setMode(vault.exists ? "unlock" : "create"), [vault.exists]);
+  useEffect(() => {
+    const a = Keyboard.addListener("keyboardDidShow", () => setKeyboard(true));
+    const b = Keyboard.addListener("keyboardDidHide", () => setKeyboard(false));
+    return () => { a.remove(); b.remove(); };
+  }, []);
+  // En pantallas bajas, o con el teclado abierto, la marca se compacta para que todo quepa sin scroll.
+  const compact = keyboard || height < 740 || mode === "create";
 
   return (
-    <SafeAreaView style={st.screen} edges={["top", "bottom", "left", "right"]}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={st.scroll} keyboardShouldPersistTaps="handled">
-          <View style={st.brand}>
-            <View style={st.logoBox}><LogoMark size={58} color="#FFFFFF" /></View>
-            <Text style={st.name} accessibilityRole="header">Chía</Text>
-            <Text style={st.tagline}>TU COMPAÑERA DE SALUD CONFIDENCIAL</Text>
+    <View style={st.screen}>
+      <StatusBar style="light" />
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom", "left", "right"]}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <ScrollView
+          contentContainerStyle={st.scroll}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+          overScrollMode="never"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[st.brand, compact && st.brandCompact]}>
+            <View style={[st.logoBox, compact && st.logoBoxCompact]}><LogoMark size={compact ? 40 : 58} color="#FFFFFF" /></View>
+            <Text style={[st.name, compact && { fontSize: 30 }]} accessibilityRole="header">Chía</Text>
+            {!keyboard && <Text style={st.tagline}>TU COMPAÑERA DE SALUD CONFIDENCIAL</Text>}
           </View>
 
           <View style={st.sheet}>
@@ -30,11 +48,16 @@ export function Splash() {
             )}
           </View>
 
-          <Button label="⚡ Consulta Express Anónima" variant="outlineLight" onPress={() => vault.setExpress(true)} style={{ marginTop: 18, minHeight: 56 }} />
-          <Text style={st.expressSub}>Sin registro. La conversación se borra al salir.</Text>
+          {!keyboard && (
+            <View>
+              <Button label="⚡ Consulta Express Anónima" variant="outlineLight" onPress={() => vault.setExpress(true)} style={{ marginTop: 16, minHeight: 56 }} />
+              <Text style={st.expressSub}>Sin registro. La conversación se borra al salir.</Text>
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -116,13 +139,13 @@ function CreateAccount() {
   const digits = (t: string) => t.replace(/\D/g, "").slice(0, 6);
 
   return (
-    <View style={{ gap: 14 }}>
+    <View style={{ gap: 10 }}>
       <Text style={st.sheetTitle}>Crea tu cuenta</Text>
-      <Text style={st.muted}>Tu ficha, recordatorios y consultas se cifran en este teléfono. Ni nosotros podemos leerlos.</Text>
-      <Field label="Nombre o apodo" hint="No uses tu nombre real si no quieres." value={alias} onChangeText={setAlias} autoCapitalize="words" />
+      <Text style={st.muted}>Se cifra en este teléfono. Ni nosotros podemos leerla.</Text>
+      <Field label="Nombre o apodo" value={alias} onChangeText={setAlias} autoCapitalize="words" />
       <Field label="PIN de 6 dígitos" value={p1} onChangeText={(t) => setP1(digits(t))} keyboardType="number-pad" secureTextEntry maxLength={6} />
       <Field label="Repite el PIN" value={p2} onChangeText={(t) => setP2(digits(t))} keyboardType="number-pad" secureTextEntry maxLength={6} />
-      <Text style={st.warn}>Si olvidas el PIN no hay forma de recuperar tus datos.</Text>
+      <Text style={st.warn}>Si olvidas el PIN no se pueden recuperar tus datos.</Text>
       {error ? <Text style={st.error}>{error}</Text> : null}
       <Button
         label={busy ? "Protegiendo…" : "Crear mi espacio"}
@@ -141,12 +164,14 @@ function CreateAccount() {
 
 const st = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.primary },
-  scroll: { flexGrow: 1, padding: 20, justifyContent: "flex-end" },
-  brand: { flexGrow: 1, alignItems: "center", justifyContent: "center", gap: 10, paddingVertical: 28 },
+  scroll: { flexGrow: 1, paddingHorizontal: 20, paddingVertical: 12, justifyContent: "space-between" },
+  brand: { flexGrow: 1, alignItems: "center", justifyContent: "center", gap: 10, paddingVertical: 16, minHeight: 200 },
+  brandCompact: { flexGrow: 0, minHeight: 0, paddingVertical: 8, gap: 4 },
   logoBox: { width: 96, height: 96, borderRadius: 28, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" },
+  logoBoxCompact: { width: 64, height: 64, borderRadius: 20 },
   name: { fontSize: 40, fontWeight: "800", color: C.onPrimary, letterSpacing: -0.5 },
   tagline: { fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.88)", letterSpacing: 1.4 },
-  sheet: { backgroundColor: C.card, borderRadius: R.xl, padding: 20 },
+  sheet: { backgroundColor: C.card, borderRadius: R.xl, padding: 18 },
   sheetTitle: { fontSize: 21, fontWeight: "800", color: C.ink, textAlign: "center" },
   muted: { fontSize: 15, lineHeight: 21, color: C.muted },
   warn: { fontSize: 14, lineHeight: 19, color: C.ink, backgroundColor: C.lavender, padding: 12, borderRadius: R.md },
