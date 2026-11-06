@@ -11,9 +11,24 @@ const KEYWORDS = [
   "hits me", "beat me", "beats me", "forced me", "forces me", "threatens me", "assault",
 ];
 
+// Frases inofensivas que contienen una palabra clave. / Harmless phrases that contain a keyword.
+const EXCEPTIONS = [
+  "cortarme el pelo", "cortarme el cabello", "cortarme las unas", "cortarme el fleco",
+  "cut myself a slice", "cut myself some slack",
+];
+
+// normalize() puede no existir en el motor JS de la app móvil: entonces solo se pasa a minúsculas.
+const strip = (s: string) => (typeof s.normalize === "function" ? s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : s.toLowerCase());
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Cada palabra clave debe empezar al inicio de una palabra: "rape" coincide con "raped",
+// pero no con "grape" ni "drape". Las raíces ("suicid", "autolesi") siguen funcionando.
+const PATTERNS = KEYWORDS.map((k) => new RegExp(`(^|[^a-z0-9])${escape(strip(k))}`));
+
 export function detectCrisis(text: string): boolean {
-  const t = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  return KEYWORDS.some((k) => t.includes(k.normalize("NFD").replace(/[\u0300-\u036f]/g, "")));
+  let t = strip(text);
+  for (const e of EXCEPTIONS) t = t.split(e).join(" ");
+  return PATTERNS.some((re) => re.test(t));
 }
 
 // Recursos internacionales: el directorio cubre líneas oficiales por país.

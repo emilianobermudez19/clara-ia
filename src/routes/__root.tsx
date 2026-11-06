@@ -14,6 +14,8 @@ import appCss from "../styles.css?url";
 import { QuickExit } from "../components/QuickExit";
 import { Header } from "../components/Header";
 import { I18nProvider } from "../lib/i18n";
+import { VaultProvider } from "../lib/vault-context";
+import { RecoveryKeyOverlay } from "../components/Account";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -80,16 +82,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Chía" },
+      { name: "application-name", content: "Chía" },
+      { name: "format-detection", content: "telephone=no" },
       { title: "Chia — Anonymous sexual health" },
       { name: "description", content: "Anonymous, judgment-free AI sexual health guidance. Orientación de salud sexual con IA, anónima y sin juicios." },
-      { name: "author", content: "Lovable" },
+      { name: "author", content: "Chía" },
       { property: "og:title", content: "Chia — Anonymous sexual health" },
       { property: "og:description", content: "Anonymous, judgment-free AI sexual health guidance, in Spanish and English." },
       { name: "referrer", content: "no-referrer" },
+      { name: "theme-color", content: "#5A3E85" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -97,8 +105,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500&display=swap" },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "icon", href: "/icons/icon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -124,13 +135,22 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Service worker: permite instalar Chía en la pantalla de inicio (iOS y Android) y prepara los avisos push.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || import.meta.env["DEV"]) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Header />
-        <QuickExit />
-        <Outlet />
+        <VaultProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Header />
+          <QuickExit />
+          <Outlet />
+          <RecoveryKeyOverlay />
+        </VaultProvider>
       </I18nProvider>
     </QueryClientProvider>
   );

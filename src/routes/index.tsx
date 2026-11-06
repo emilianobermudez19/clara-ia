@@ -1,43 +1,103 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ShieldCheck, MessageCircle, BookOpen, Compass } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowRight, BookOpen, CalendarClock, ChevronRight, MessageSquareText, Stethoscope } from "lucide-react";
+import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/QuickExit";
+import { AuthGate } from "@/components/AuthGate";
+import { Categories } from "@/components/Categories";
+import { LegalFooter } from "@/components/LegalFooter";
 import { useI18n } from "@/lib/i18n";
+import { useVault } from "@/lib/vault-context";
+import { nextDose } from "@/lib/vault";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Chia — Anonymous, judgment-free sexual health" },
-      { name: "description", content: "Anonymous, free AI sexual health guidance, in Spanish and English." },
-      { property: "og:title", content: "Chia — Anonymous, judgment-free sexual health" },
-      { property: "og:description", content: "Ask anything about sexual health, no sign-up and no judgment." },
+      { title: "Chía — Tu médico de cabecera digital, confidencial" },
+      { name: "description", content: "Orientación de salud confidencial: síntomas, salud sexual, recordatorios y telemedicina." },
+      { property: "og:title", content: "Chía — Tu médico de cabecera digital, confidencial" },
+      { property: "og:description", content: "Cuéntale a Chía qué te pasa. Sin juicios." },
     ],
   }),
   component: Index,
 });
 
+// Sin sesión: acceso con PIN + Consulta Express. Con sesión: panel personal.
 function Index() {
-  const { t } = useI18n();
+  const vault = useVault();
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   return (
-    <main className="mx-auto min-h-screen max-w-md px-6 pb-28 pt-20">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-        <Compass className="h-6 w-6" />
-      </div>
-      <h1 className="mt-6 font-display text-4xl leading-tight text-foreground">{t.homeTitle}</h1>
-      <p className="mt-4 text-muted-foreground">{t.homeSub}</p>
-
-      <div className="mt-6 flex items-start gap-3 rounded-2xl bg-secondary p-4 text-sm text-secondary-foreground">
-        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
-        <p>{t.homePrivacy}</p>
-      </div>
-
-      <Link to="/chat" className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-4 font-semibold text-primary-foreground">
-        <MessageCircle className="h-5 w-5" /> {t.homeCTAChat}
-      </Link>
-      <Link to="/aprende" className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-border py-4 font-medium text-foreground">
-        <BookOpen className="h-5 w-5" /> {t.homeCTALearn}
-      </Link>
-      <Link to="/cuenta" className="mt-6 block text-center text-sm text-muted-foreground underline">{t.homeAccount}</Link>
+    <main className="safe-page mx-auto flex min-h-dvh max-w-md flex-col gap-6">
+      {ready && (vault.profile ? <Home /> : <AuthGate />)}
+      <LegalFooter />
       <BottomNav active="inicio" />
     </main>
+  );
+}
+
+function Home() {
+  const { t, lang } = useI18n();
+  const navigate = useNavigate();
+  const { profile } = useVault();
+  const [q, setQ] = useState("");
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const id = window.setInterval(() => setNow(new Date()), 60_000); return () => window.clearInterval(id); }, []);
+  if (!profile) return null;
+
+  const h = now.getHours();
+  const greet = h < 12 ? t.greetMorning : h < 19 ? t.greetAfternoon : t.greetEvening;
+  const next = nextDose(profile.reminders, now);
+  const ask = (text: string) => { if (text.trim()) navigate({ to: "/chat", search: { q: text.trim() } }); };
+
+  return (
+    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <section className="space-y-4 rounded-[28px] bg-primary p-5 text-primary-foreground">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold opacity-80">{greet}, {profile.alias}</p>
+          <h1 className="font-display text-[28px] leading-tight">{t.homeHow}</h1>
+        </div>
+        <form onSubmit={(e) => { e.preventDefault(); ask(q); }} className="flex min-h-14 items-center gap-2 rounded-full bg-card pl-5 pr-1.5">
+          <label htmlFor="home-ask" className="sr-only">{t.homeAskPlaceholder}</label>
+          <input
+            id="home-ask"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t.homeAskPlaceholder}
+            className="min-w-0 flex-1 bg-transparent text-[17px] text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          <button type="submit" aria-label={t.homeAskSend} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <ArrowRight className="h-5 w-5" />
+          </button>
+        </form>
+      </section>
+
+      <Link to="/cuenta" className="flex items-center gap-4 rounded-[20px] border border-border bg-card p-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground"><CalendarClock className="h-5 w-5" /></span>
+        <span className="flex flex-1 flex-col gap-0.5">
+          <span className="text-base font-bold text-foreground">
+            {next ? t.nextDoseHome(next.reminder.name, next.at.toLocaleTimeString(lang === "es" ? "es-MX" : "en-US", { hour: "2-digit", minute: "2-digit" })) : t.noRemindersHome}
+          </span>
+          <span className="text-sm text-muted-foreground">{t.remindersHomeSub}</span>
+        </span>
+        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+      </Link>
+
+      <Categories />
+
+      <div className="grid grid-cols-2 gap-3">
+        <Link to="/cuenta" className="flex min-h-24 flex-col justify-between gap-2 rounded-[20px] bg-accent p-4 text-accent-foreground">
+          <Stethoscope className="h-5 w-5" />
+          <span className="text-base font-bold leading-snug">{t.teleCardTitle}</span>
+        </Link>
+        <Link to="/cuenta" className="flex min-h-24 flex-col justify-between gap-2 rounded-[20px] bg-secondary p-4 text-secondary-foreground">
+          <MessageSquareText className="h-5 w-5" />
+          <span className="text-base font-bold leading-snug">{t.historyCard(profile.consultations.length)}</span>
+        </Link>
+      </div>
+
+      <Link to="/aprende" className="flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-primary">
+        <BookOpen className="h-4 w-4" /> {t.guidesLink}
+      </Link>
+    </div>
   );
 }

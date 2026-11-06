@@ -1,9 +1,16 @@
-import { X } from "lucide-react";
+import { X, Home, MessageCircle, UserRound } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { COUNTRIES, type IntentChoice } from "@/lib/countries";
 
 export function quickExit() {
   try { sessionStorage.clear(); } catch { /* noop */ }
+  // Borra también las preferencias guardadas (idioma, tema, modo) para no dejar rastro de la visita.
+  // La ficha cifrada ("chia-vault") se conserva: sin el PIN es ilegible, y borrarla haría perder datos médicos.
+  try {
+    Object.keys(localStorage).filter((k) => k.startsWith("chia-") && k !== "chia-vault").forEach((k) => localStorage.removeItem(k));
+  } catch { /* noop */ }
   window.location.replace("https://www.google.com/search?q=weather+today");
 }
 
@@ -13,36 +20,48 @@ export function QuickExit() {
     <button
       onClick={quickExit}
       aria-label={t.exit}
-      className="fixed right-4 top-4 z-50 flex items-center gap-1.5 rounded-full bg-exit px-4 py-2 text-sm font-semibold text-exit-foreground shadow-lg active:scale-95"
+      className="safe-exit fixed right-4 z-50 flex min-h-11 items-center gap-1.5 rounded-full bg-exit px-4 text-sm font-bold text-exit-foreground active:scale-95"
     >
       <X className="h-4 w-4" /> {t.exit}
     </button>
   );
 }
 
-export function BottomNav({ active }: { active: "inicio" | "chat" | "aprende" }) {
+export function BottomNav({ active }: { active: "inicio" | "chat" | "aprende" | "cuenta" }) {
   const { t } = useI18n();
   const items = [
-    { to: "/", label: t.navHome, key: "inicio" },
-    { to: "/chat", label: t.navChat, key: "chat" },
-    { to: "/aprende", label: t.navLearn, key: "aprende" },
+    { to: "/", label: t.navHome, key: "inicio", Icon: Home },
+    { to: "/chat", label: t.navChat, key: "chat", Icon: MessageCircle },
+    { to: "/cuenta", label: t.navSpace, key: "cuenta", Icon: UserRound },
   ] as const;
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-md justify-around py-2">
-        {items.map((i) => (
-          <a key={i.key} href={i.to} className={`px-4 py-2 text-sm ${active === i.key ? "font-semibold text-primary" : "text-muted-foreground"}`}>
-            {i.label}
-          </a>
-        ))}
+    <nav aria-label="Principal" className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
+      <div className="mx-auto grid max-w-md grid-cols-3">
+        {items.map(({ to, label, key, Icon }) => {
+          const on = active === key;
+          return (
+            <Link
+              key={key}
+              to={to}
+              aria-current={on ? "page" : undefined}
+              className={`flex min-h-14 flex-col items-center justify-center gap-1 text-xs ${on ? "font-bold text-primary" : "font-medium text-muted-foreground"}`}
+            >
+              <span className={`flex h-7 w-12 items-center justify-center rounded-full ${on ? "bg-secondary" : ""}`}>
+                <Icon className="h-5 w-5" />
+              </span>
+              {label}
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
 }
 
 export function IntentCTA({ source }: { source: string }) {
-  const { t } = useI18n();
-  const [choice, setChoice] = useState<string | null>(null);
+  const { t, lang } = useI18n();
+  const [choice, setChoice] = useState<IntentChoice | null>(null);
+  const [country, setCountry] = useState("");
   const [done, setDone] = useState(false);
 
   if (done) {
@@ -56,23 +75,27 @@ export function IntentCTA({ source }: { source: string }) {
   if (choice) {
     return (
       <div className="rounded-2xl border border-border bg-card p-4 text-sm">
-        <p className="text-foreground">{t.intentRegionAsk}</p>
+        <label htmlFor="intent-country" className="text-foreground">{t.intentRegionAsk}</label>
         <form
           className="mt-3 flex gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            const region = new FormData(e.currentTarget).get("region");
-            // Métrica de intención anónima (Fase 2). Sin datos personales.
-            console.info("[intent]", { source, choice, region, at: new Date().toISOString() });
+            if (!country) return;
+            // Métrica de intención anónima (Fase 2): solo clave fija + código ISO. Pendiente: guardar en /api/intent.
+            console.info("[intent]", { source, choice, country });
             setDone(true);
           }}
         >
-          <input
-            name="region"
-            placeholder={t.intentRegionPlaceholder}
-            className="min-w-0 flex-1 rounded-full border border-input bg-background px-3 py-1.5 text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <button type="submit" className="rounded-full bg-primary px-3 py-1.5 font-medium text-primary-foreground">
+          <select
+            id="intent-country"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="min-h-11 min-w-0 flex-1 rounded-full border border-input bg-background px-3 text-foreground"
+          >
+            <option value="" disabled>{t.intentRegionPlaceholder}</option>
+            {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c[lang]}</option>)}
+          </select>
+          <button type="submit" disabled={!country} className="min-h-11 rounded-full bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
             {t.intentSend}
           </button>
         </form>
@@ -80,13 +103,17 @@ export function IntentCTA({ source }: { source: string }) {
     );
   }
 
+  const options: { key: IntentChoice; label: string }[] = [
+    { key: "specialist", label: t.intentSpecialist },
+    { key: "clinics", label: t.intentClinics },
+  ];
   return (
     <div className="rounded-2xl border border-border bg-card p-4 text-sm">
       <p className="text-foreground">{t.intentQ}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        {[t.intentSpecialist, t.intentClinics].map((l) => (
-          <button key={l} onClick={() => setChoice(l)} className="rounded-full bg-secondary px-3 py-1.5 text-secondary-foreground">
-            {l}
+        {options.map((o) => (
+          <button key={o.key} onClick={() => setChoice(o.key)} className="min-h-11 rounded-full bg-secondary px-4 font-medium text-secondary-foreground">
+            {o.label}
           </button>
         ))}
       </div>
