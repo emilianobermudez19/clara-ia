@@ -6,10 +6,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BLOOD_TYPES, COMMON_VACCINES, newId, nextDose, type BloodType, type Profile, type Vaccine } from "../../src/shared/lib/vault";
 import { ensurePermission } from "../../src/notifications";
 import { TopBar } from "../../src/TopBar";
+import { Hotline } from "../../src/Hotline";
+import { InsuranceCard } from "../../src/InsuranceCard";
 import { Button, Card, Field, H1, H2, P, Segmented } from "../../src/ui";
 import { useVault } from "../../src/vault";
-import { DISCLAIMER } from "../../src/topics";
+import { disclaimer } from "../../src/topics";
 import { C, R } from "../../src/theme";
+import { getLang, tr } from "../../src/i18n";
 
 type Tab = "history" | "reminders" | "record" | "tele";
 
@@ -25,32 +28,32 @@ export default function Espacio() {
         <ScrollView contentContainerStyle={st.scroll} keyboardShouldPersistTaps="handled">
           {!profile ? (
             <Card>
-              <H2>Mi espacio</H2>
-              <P muted>Estás en Consulta Express. Para guardar tu ficha, vacunas, recordatorios y consultas, crea una cuenta o entra con tu PIN.</P>
-              <Button label="Crear cuenta o entrar" onPress={() => vault.setExpress(false)} />
+              <H2>{tr("Mi espacio")}</H2>
+              <P muted>{tr("Estás en Consulta Express. Para guardar tu ficha, vacunas, recordatorios y consultas, crea una cuenta o entra con tu PIN.")}</P>
+              <Button label={tr("Crear cuenta o entrar")} onPress={() => vault.setExpress(false)} />
             </Card>
           ) : (
             <>
-              <H1>Hola, {profile.alias}</H1>
+              <H1>{tr("Hola")}, {profile.alias}</H1>
               <NextDose profile={profile} onPress={() => setTab("reminders")} />
               <Segmented<Tab>
                 value={tab}
                 onChange={setTab}
                 options={[
-                  { key: "history", label: "Consultas" },
-                  { key: "reminders", label: "Recordatorios" },
-                  { key: "record", label: "Ficha" },
-                  { key: "tele", label: "Telemedicina" },
+                  { key: "history", label: tr("Consultas") },
+                  { key: "reminders", label: tr("Recordatorios") },
+                  { key: "record", label: tr("Ficha") },
+                  { key: "tele", label: tr("Telemedicina") },
                 ]}
               />
               {tab === "history" && <History profile={profile} />}
               {tab === "reminders" && <Reminders profile={profile} />}
               {tab === "record" && <Record profile={profile} />}
               {tab === "tele" && <Tele profile={profile} />}
-              <Text style={st.privacy}>Cifrado AES-256 en este teléfono · clave en el llavero seguro del sistema · se bloquea al salir de la app</Text>
+              <Text style={st.privacy}>{tr("Cifrado AES-256 en este teléfono · clave en el llavero seguro del sistema · se bloquea al salir de la app")}</Text>
             </>
           )}
-          <Text style={st.disclaimer}>{DISCLAIMER}</Text>
+          <Text style={st.disclaimer}>{disclaimer()}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -63,8 +66,8 @@ function NextDose({ profile, onPress }: { profile: Profile; onPress: () => void 
     <Pressable onPress={onPress} style={st.dose}>
       <View style={st.doseIcon}><Ionicons name="alarm" size={24} color="#FFFFFF" /></View>
       <View style={{ flex: 1 }}>
-        <Text style={st.doseLabel}>Próxima toma</Text>
-        <Text style={st.doseValue}>{next ? `${next.reminder.name} · ${next.at.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}` : "Sin recordatorios activos"}</Text>
+        <Text style={st.doseLabel}>{tr("Próxima toma")}</Text>
+        <Text style={st.doseValue}>{next ? `${next.reminder.name} · ${next.at.toLocaleTimeString(getLang() === "en" ? "en-US" : "es-MX", { hour: "2-digit", minute: "2-digit" })}` : tr("Sin recordatorios activos")}</Text>
       </View>
     </Pressable>
   );
@@ -75,23 +78,23 @@ function History({ profile }: { profile: Profile }) {
   const [open, setOpen] = useState<string | null>(null);
   return (
     <View style={{ gap: 12 }}>
-      <Button label="Nueva consulta" icon={<Ionicons name="add" size={20} color="#FFFFFF" />} onPress={() => router.push("/chat")} />
-      {profile.consultations.length === 0 && <Card><P muted>Aún no guardas consultas. En el chat, activa "Guardar en Mi espacio". Las consultas anónimas nunca se guardan.</P></Card>}
+      <Button label={tr("Nueva consulta")} icon={<Ionicons name="add" size={20} color="#FFFFFF" />} onPress={() => router.push("/chat")} />
+      {profile.consultations.length === 0 && <Card><P muted>{tr("Aún no guardas consultas. En el chat, activa \"Guardar en Mi espacio\". Las consultas anónimas nunca se guardan.")}</P></Card>}
       {profile.consultations.map((k) => (
         <Card key={k.id}>
           <Pressable onPress={() => setOpen(open === k.id ? null : k.id)} accessibilityRole="button" accessibilityState={{ expanded: open === k.id }}>
-            <Text style={st.date}>{new Date(k.date).toLocaleString("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</Text>
+            <Text style={st.date}>{new Date(k.date).toLocaleString(getLang() === "en" ? "en-US" : "es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</Text>
             <Text style={st.itemTitle}>{k.title}</Text>
           </Pressable>
           {open === k.id && (
             <View style={{ gap: 8 }}>
               {k.turns.map((t, i) => (
                 <Text key={i} style={[st.turn, t.role === "user" ? { backgroundColor: C.lavender } : { backgroundColor: C.bg }]}>
-                  <Text style={{ fontWeight: "800" }}>{t.role === "user" ? "Tú" : "Chía"}: </Text>
+                  <Text style={{ fontWeight: "800" }}>{t.role === "user" ? tr("Tú") : tr("Chía")}: </Text>
                   {t.text.replace(/\[\[media:[a-z0-9-]+\]\]/g, "")}
                 </Text>
               ))}
-              <Button variant="danger" label="Borrar consulta" onPress={() => void vault.update((p) => ({ ...p, consultations: p.consultations.filter((x) => x.id !== k.id) }))} />
+              <Button variant="danger" label={tr("Borrar consulta")} onPress={() => void vault.update((p) => ({ ...p, consultations: p.consultations.filter((x) => x.id !== k.id) }))} />
             </View>
           )}
         </Card>
@@ -110,7 +113,7 @@ function Reminders({ profile }: { profile: Profile }) {
 
   return (
     <View style={{ gap: 12 }}>
-      <Text style={st.rule}>Chía no calcula dosis ni horarios: usa los de tu receta o los del empaque.</Text>
+      <Text style={st.rule}>{tr("Chía no calcula dosis ni horarios: usa los de tu receta o los del empaque.")}</Text>
       {profile.reminders.map((r) => (
         <Card key={r.id} style={{ flexDirection: "row", alignItems: "center" }}>
           <View style={{ flex: 1, gap: 4 }}>
@@ -129,7 +132,7 @@ function Reminders({ profile }: { profile: Profile }) {
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Eliminar ${r.name}`}
+            accessibilityLabel={`${tr("Eliminar")} ${r.name}`}
             onPress={() => void vault.update((p) => ({ ...p, reminders: p.reminders.filter((x) => x.id !== r.id) }))}
             style={[st.round, { backgroundColor: C.lavender }]}
           >
@@ -138,16 +141,16 @@ function Reminders({ profile }: { profile: Profile }) {
         </Card>
       ))}
       <Card>
-        <H2>Nuevo recordatorio</H2>
-        <Field label="Medicamento o método" placeholder="Ej. pastilla anticonceptiva, PrEP" value={name} onChangeText={setName} />
-        <Field label="Horas (separadas por coma)" placeholder="08:00, 20:00" value={times} onChangeText={setTimes} keyboardType="numbers-and-punctuation" />
-        <Field label="Indicación de tu receta" placeholder="Tal como la escribió tu médico" value={note} onChangeText={setNote} />
+        <H2>{tr("Nuevo recordatorio")}</H2>
+        <Field label={tr("Medicamento o método")} placeholder={tr("Ej. pastilla anticonceptiva, PrEP")} value={name} onChangeText={setName} />
+        <Field label={tr("Horas (separadas por coma)")} placeholder="08:00, 20:00" value={times} onChangeText={setTimes} keyboardType="numbers-and-punctuation" />
+        <Field label={tr("Indicación de tu receta")} placeholder={tr("Tal como la escribió tu médico")} value={note} onChangeText={setNote} />
         {error ? <Text style={st.error}>{error}</Text> : null}
         <Button
-          label="Agregar recordatorio"
+          label={tr("Agregar recordatorio")}
           onPress={async () => {
             const list = times.split(",").map((t) => t.trim()).filter(Boolean);
-            if (!name.trim() || !list.length || !list.every((t) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t))) return setError("Escribe horas como 08:00 o 20:30.");
+            if (!name.trim() || !list.length || !list.every((t) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t))) return setError(tr("Escribe horas como 08:00 o 20:30."));
             setError("");
             const ok = await ensurePermission();
             setAllowed(ok);
@@ -157,8 +160,8 @@ function Reminders({ profile }: { profile: Profile }) {
         />
         <Text style={st.muted}>
           {allowed === false
-            ? "Activa las notificaciones de Chía en los ajustes del teléfono para recibir avisos."
-            : "Los avisos llegan aunque la app esté cerrada. Por privacidad, no dicen el nombre del medicamento."}
+            ? tr("Activa las notificaciones de Chía en los ajustes del teléfono para recibir avisos.")
+            : tr("Los avisos llegan aunque la app esté cerrada. Por privacidad, no dicen el nombre del medicamento.")}
         </Text>
       </Card>
     </View>
@@ -175,29 +178,31 @@ function Record({ profile }: { profile: Profile }) {
   return (
     <View style={{ gap: 12 }}>
       <Card>
-        <H2>Ficha médica</H2>
-        <Text style={st.label}>Tipo de sangre</Text>
+        <H2>{tr("Ficha médica")}</H2>
+        <Text style={st.label}>{tr("Tipo de sangre")}</Text>
         <View style={st.chips}>
           {BLOOD_TYPES.map((b) => (
             <Pressable key={b} accessibilityRole="radio" accessibilityState={{ checked: p.bloodType === b }} onPress={() => set("bloodType", b as BloodType)} style={[st.chip, p.bloodType === b && st.chipOn]}>
-              <Text style={[st.chipText, p.bloodType === b && { color: "#FFFFFF" }]}>{b === "unknown" ? "No lo sé" : b}</Text>
+              <Text style={[st.chipText, p.bloodType === b && { color: "#FFFFFF" }]}>{b === "unknown" ? tr("No lo sé") : b}</Text>
             </Pressable>
           ))}
         </View>
-        <Field label="Alergias" placeholder="Ej. penicilina, látex" value={p.allergies} onChangeText={(v) => set("allergies", v)} />
-        <Field label="Medicamentos que tomas" placeholder="Nombre y para qué" value={p.medications} onChangeText={(v) => set("medications", v)} multiline />
-        <Field label="Condiciones de salud" placeholder="Ej. asma, diabetes" value={p.conditions} onChangeText={(v) => set("conditions", v)} />
-        <Text style={st.muted}>En el chat, el interruptor "Usar mi ficha" comparte solo alergias, condiciones y medicamentos para revisar opciones de venta libre. Está apagado por defecto.</Text>
+        <Field label={tr("Alergias")} placeholder={tr("Ej. penicilina, látex")} value={p.allergies} onChangeText={(v) => set("allergies", v)} />
+        <Field label={tr("Medicamentos que tomas")} placeholder={tr("Nombre y para qué")} value={p.medications} onChangeText={(v) => set("medications", v)} multiline />
+        <Field label={tr("Condiciones de salud")} placeholder={tr("Ej. asma, diabetes")} value={p.conditions} onChangeText={(v) => set("conditions", v)} />
+        <Text style={st.muted}>{tr("En el chat, el interruptor \"Usar mi ficha\" comparte solo alergias, condiciones y medicamentos para revisar opciones de venta libre. Está apagado por defecto.")}</Text>
       </Card>
 
       <Vaccines profile={profile} />
 
+      <InsuranceCard profile={profile} />
+
       <Card>
-        <H2>Diario de síntomas</H2>
-        <Field label="¿Qué sentiste hoy?" value={entry} onChangeText={setEntry} />
+        <H2>{tr("Diario de síntomas")}</H2>
+        <Field label={tr("¿Qué sentiste hoy?")} value={entry} onChangeText={setEntry} />
         <Button
           variant="secondary"
-          label="Agregar al diario"
+          label={tr("Agregar al diario")}
           onPress={() => {
             if (!entry.trim()) return;
             set("symptoms", [{ date: new Date().toISOString().slice(0, 10), text: entry.trim() }, ...p.symptoms]);
@@ -206,27 +211,27 @@ function Record({ profile }: { profile: Profile }) {
         />
         {p.symptoms.map((s, i) => (
           <View key={`${s.date}-${i}`} style={st.entry}>
-            <Text style={st.date}>{new Date(`${s.date}T12:00:00`).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}</Text>
+            <Text style={st.date}>{new Date(`${s.date}T12:00:00`).toLocaleDateString(getLang() === "en" ? "en-US" : "es-MX", { day: "numeric", month: "short", year: "numeric" })}</Text>
             <Text style={st.entryText}>{s.text}</Text>
           </View>
         ))}
       </Card>
 
       <Button
-        label="Guardar ficha"
+        label={tr("Guardar ficha")}
         onPress={async () => {
           await vault.update((cur) => ({ ...cur, bloodType: p.bloodType, allergies: p.allergies, medications: p.medications, conditions: p.conditions, symptoms: p.symptoms }));
           setSaved(true);
         }}
       />
-      {saved && <Text style={st.ok}>Guardado y cifrado.</Text>}
+      {saved && <Text style={st.ok}>{tr("Guardado y cifrado.")}</Text>}
       <Button
         variant="danger"
-        label="Borrar mi espacio"
+        label={tr("Borrar mi espacio")}
         onPress={() =>
-          Alert.alert("Borrar mi espacio", "¿Borrar todos tus datos de este teléfono? No se puede deshacer.", [
-            { text: "Cancelar", style: "cancel" },
-            { text: "Borrar", style: "destructive", onPress: () => void vault.remove() },
+          Alert.alert(tr("Borrar mi espacio"), tr("¿Borrar todos tus datos de este teléfono? No se puede deshacer."), [
+            { text: tr("Cancelar"), style: "cancel" },
+            { text: tr("Borrar"), style: "destructive", onPress: () => void vault.remove() },
           ])
         }
       />
@@ -248,28 +253,28 @@ function Vaccines({ profile }: { profile: Profile }) {
     <Card>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Ionicons name="shield-checkmark" size={22} color={C.primary} />
-        <H2>Cartilla de vacunación</H2>
+        <H2>{tr("Cartilla de vacunación")}</H2>
       </View>
-      <P muted>Registra las vacunas que ya tienes y las que te faltan. Un centro de salud puede decirte cuáles te corresponden.</P>
+      <P muted>{tr("Registra las vacunas que ya tienes y las que te faltan. Un centro de salud puede decirte cuáles te corresponden.")}</P>
       {profile.vaccines.map((v) => (
         <View key={v.id} style={[st.entry, { flexDirection: "row", alignItems: "center" }]}>
           <View style={{ flex: 1 }}>
             <Text style={st.entryText}>{v.name}{v.dose ? ` · ${v.dose}` : ""}</Text>
-            <Text style={[st.date, { color: v.status === "applied" ? C.leaf : C.primary }]}>{v.status === "applied" ? `Aplicada${v.date ? ` · ${v.date}` : ""}` : "Pendiente"}</Text>
+            <Text style={[st.date, { color: v.status === "applied" ? C.leaf : C.primary }]}>{v.status === "applied" ? `${tr("Aplicada")}${v.date ? ` · ${v.date}` : ""}` : tr("Pendiente")}</Text>
           </View>
           {v.status === "pending" && (
-            <Pressable accessibilityLabel={`Marcar ${v.name} como aplicada`} onPress={() => void vault.update((p) => ({ ...p, vaccines: p.vaccines.map((x) => (x.id === v.id ? { ...x, status: "applied", date: x.date || today } : x)) }))} style={[st.round, { backgroundColor: C.lavender }]}>
+            <Pressable accessibilityLabel={`${tr("Marcar como aplicada")}: ${v.name}`} onPress={() => void vault.update((p) => ({ ...p, vaccines: p.vaccines.map((x) => (x.id === v.id ? { ...x, status: "applied", date: x.date || today } : x)) }))} style={[st.round, { backgroundColor: C.lavender }]}>
               <Ionicons name="checkmark" size={20} color={C.primaryDark} />
             </Pressable>
           )}
-          <Pressable accessibilityLabel={`Eliminar ${v.name}`} onPress={() => void vault.update((p) => ({ ...p, vaccines: p.vaccines.filter((x) => x.id !== v.id) }))} style={[st.round, { backgroundColor: C.lavender }]}>
+          <Pressable accessibilityLabel={`${tr("Eliminar")} ${v.name}`} onPress={() => void vault.update((p) => ({ ...p, vaccines: p.vaccines.filter((x) => x.id !== v.id) }))} style={[st.round, { backgroundColor: C.lavender }]}>
             <Ionicons name="trash" size={18} color={C.muted} />
           </Pressable>
         </View>
       ))}
       {missing.length > 0 && (
         <>
-          <Text style={st.label}>Agregar rápido (pendiente):</Text>
+          <Text style={st.label}>{tr("Agregar rápido (pendiente):")}</Text>
           <View style={st.chips}>
             {missing.map((n) => (
               <Pressable key={n} onPress={() => void add({ name: n, status: "pending", date: "", dose: "" })} style={st.chip}>
@@ -279,19 +284,19 @@ function Vaccines({ profile }: { profile: Profile }) {
           </View>
         </>
       )}
-      <Field label="Otra vacuna" value={name} onChangeText={setName} />
+      <Field label={tr("Otra vacuna")} value={name} onChangeText={setName} />
       <View style={st.chips}>
         {(["applied", "pending"] as const).map((s) => (
           <Pressable key={s} accessibilityRole="radio" accessibilityState={{ checked: status === s }} onPress={() => setStatus(s)} style={[st.chip, status === s && st.chipOn]}>
-            <Text style={[st.chipText, status === s && { color: "#FFFFFF" }]}>{s === "applied" ? "Aplicada" : "Pendiente"}</Text>
+            <Text style={[st.chipText, status === s && { color: "#FFFFFF" }]}>{s === "applied" ? tr("Aplicada") : tr("Pendiente")}</Text>
           </Pressable>
         ))}
       </View>
-      {status === "applied" && <Field label="Fecha (AAAA-MM-DD)" placeholder={today} value={date} onChangeText={setDate} keyboardType="numbers-and-punctuation" />}
-      <Field label="Dosis (opcional)" placeholder="Ej. 1.ª dosis, refuerzo" value={dose} onChangeText={setDose} />
+      {status === "applied" && <Field label={tr("Fecha (AAAA-MM-DD)")} placeholder={today} value={date} onChangeText={setDate} keyboardType="numbers-and-punctuation" />}
+      <Field label={tr("Dosis (opcional)")} placeholder={tr("Ej. 1.ª dosis, refuerzo")} value={dose} onChangeText={setDose} />
       <Button
         variant="secondary"
-        label="Agregar vacuna"
+        label={tr("Agregar vacuna")}
         onPress={async () => {
           if (!name.trim()) return;
           const d = /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "";
@@ -303,49 +308,50 @@ function Vaccines({ profile }: { profile: Profile }) {
   );
 }
 
-const SPECS = ["Medicina general", "Ginecología", "Salud sexual e ITS", "Urología", "Psicología"];
+const specs = () => [tr("Medicina general"), tr("Ginecología"), tr("Salud sexual e ITS"), tr("Urología"), tr("Psicología")];
 
 function Tele({ profile }: { profile: Profile }) {
   const vault = useVault();
-  const [spec, setSpec] = useState(SPECS[0] ?? "Medicina general");
+  const [spec, setSpec] = useState(specs()[0] ?? tr("Medicina general"));
   const [reason, setReason] = useState("");
   const [sent, setSent] = useState(false);
   return (
     <View style={{ gap: 12 }}>
+      <Hotline />
       <Card style={{ backgroundColor: C.leafBg, borderColor: C.leafBg }}>
-        <H2>Habla con un especialista</H2>
-        <P>Estamos sumando médicas y médicos aliados. Deja tu solicitud y te avisaremos aquí cuando la consulta esté disponible.</P>
+        <H2>{tr("Habla con un especialista")}</H2>
+        <P>{tr("Estamos sumando médicas y médicos aliados. Deja tu solicitud y te avisaremos aquí cuando la consulta esté disponible.")}</P>
       </Card>
       <Card>
-        <Text style={st.label}>Especialidad</Text>
+        <Text style={st.label}>{tr("Especialidad")}</Text>
         <View style={st.chips}>
-          {SPECS.map((x) => (
+          {specs().map((x) => (
             <Pressable key={x} onPress={() => setSpec(x)} style={[st.chip, spec === x && st.chipOn]}>
               <Text style={[st.chipText, spec === x && { color: "#FFFFFF" }]}>{x}</Text>
             </Pressable>
           ))}
         </View>
-        <Field label="Motivo (opcional)" value={reason} onChangeText={setReason} multiline />
-        <P muted>Tu ficha y tus síntomas solo se compartirán con tu permiso, al momento de la consulta.</P>
+        <Field label={tr("Motivo (opcional)")} value={reason} onChangeText={setReason} multiline />
+        <P muted>{tr("Tu ficha y tus síntomas solo se compartirán con tu permiso, al momento de la consulta.")}</P>
         <Button
-          label="Solicitar consulta"
+          label={tr("Solicitar consulta")}
           onPress={async () => {
             await vault.update((p) => ({ ...p, teleRequests: [{ id: newId(), date: new Date().toISOString(), specialty: spec, reason: reason.trim(), status: "pending" }, ...p.teleRequests] }));
             setReason(""); setSent(true);
           }}
         />
-        {sent && <Text style={st.ok}>Solicitud registrada.</Text>}
+        {sent && <Text style={st.ok}>{tr("Solicitud registrada.")}</Text>}
       </Card>
       {profile.teleRequests.map((r) => (
         <Card key={r.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <View>
             <Text style={st.itemTitle}>{r.specialty}</Text>
-            <Text style={st.date}>{new Date(r.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</Text>
+            <Text style={st.date}>{new Date(r.date).toLocaleDateString(getLang() === "en" ? "en-US" : "es-MX", { day: "numeric", month: "short" })}</Text>
           </View>
-          <Text style={st.pending}>Pendiente</Text>
+          <Text style={st.pending}>{tr("Pendiente")}</Text>
         </Card>
       ))}
-      <Text style={st.urgent}>Si es urgente, no esperes: llama a tu número de emergencias o acude a urgencias.</Text>
+      <Text style={st.urgent}>{tr("Si es urgente, no esperes: llama a tu número de emergencias o acude a urgencias.")}</Text>
     </View>
   );
 }

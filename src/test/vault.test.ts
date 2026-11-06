@@ -42,3 +42,11 @@ describe("Mi espacio", () => {
     expect(upsertConsultation(upsertConsultation([], c), { ...c, title: "y" })).toEqual([{ ...c, title: "y" }]);
   });
 });
+
+import { emptyInsurance } from "@/lib/vault";
+
+describe("seguro médico en la ficha", () => {
+  it("fichas anteriores obtienen un seguro vacío", () => {
+    expect(normalizeProfile({ alias: "a" } as never).insurance).toEqual(emptyInsurance());
+  });
+});

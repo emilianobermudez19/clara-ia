@@ -5,7 +5,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useVault } from "./vault";
 import { LogoMark } from "./Logo";
 import { Button, Field } from "./ui";
+import { LangToggle } from "./LangToggle";
 import { C, R } from "./theme";
+import { tr } from "./i18n";
 
 // Entrada tipo app nativa: logo, PIN de 6 dígitos (entra solo al completarse) o crear cuenta,
 // y la Consulta Express anónima siempre visible abajo.
@@ -35,23 +37,24 @@ export function Splash() {
           overScrollMode="never"
           showsVerticalScrollIndicator={false}
         >
+          <View style={{ alignItems: "flex-end" }}><LangToggle light /></View>
           <View style={[st.brand, compact && st.brandCompact]}>
             <View style={[st.logoBox, compact && st.logoBoxCompact]}><LogoMark size={compact ? 40 : 58} color="#FFFFFF" /></View>
-            <Text style={[st.name, compact && { fontSize: 30 }]} accessibilityRole="header">Chía</Text>
-            {!keyboard && <Text style={st.tagline}>TU COMPAÑERA DE SALUD CONFIDENCIAL</Text>}
+            <Text style={[st.name, compact && { fontSize: 30 }]} accessibilityRole="header">{tr("Chía")}</Text>
+            {!keyboard && <Text style={st.tagline}>{tr("TU COMPAÑERA DE SALUD CONFIDENCIAL")}</Text>}
           </View>
 
           <View style={st.sheet}>
             {mode === "unlock" ? <PinUnlock /> : <CreateAccount />}
             {mode === "create" && vault.exists && (
-              <Pressable onPress={() => setMode("unlock")} style={st.link}><Text style={st.linkText}>Ya tengo cuenta: entrar con PIN</Text></Pressable>
+              <Pressable onPress={() => setMode("unlock")} style={st.link}><Text style={st.linkText}>{tr("Ya tengo cuenta: entrar con PIN")}</Text></Pressable>
             )}
           </View>
 
           {!keyboard && (
             <View>
-              <Button label="⚡ Consulta Express Anónima" variant="outlineLight" onPress={() => vault.setExpress(true)} style={{ marginTop: 16, minHeight: 56 }} />
-              <Text style={st.expressSub}>Sin registro. La conversación se borra al salir.</Text>
+              <Button label={tr("⚡ Consulta Express Anónima")} variant="outlineLight" onPress={() => vault.setExpress(true)} style={{ marginTop: 16, minHeight: 56 }} />
+              <Text style={st.expressSub}>{tr("Sin registro. La conversación se borra al salir.")}</Text>
             </View>
           )}
         </ScrollView>
@@ -89,7 +92,7 @@ function PinUnlock() {
       setFails(n);
       setPin("");
       if (n % 5 === 0) { setWaitUntil(Date.now() + 30_000 * (n / 5)); setNow(Date.now()); }
-      setError("PIN incorrecto.");
+      setError(tr("PIN incorrecto."));
       setTimeout(() => input.current?.focus(), 50);
     } finally {
       setBusy(false);
@@ -98,8 +101,8 @@ function PinUnlock() {
 
   return (
     <View style={{ gap: 16 }}>
-      <Text style={st.sheetTitle}>Entra con tu PIN</Text>
-      <Pressable onPress={() => input.current?.focus()} accessibilityLabel="PIN de 6 dígitos" style={st.pinRow}>
+      <Text style={st.sheetTitle}>{tr("Entra con tu PIN")}</Text>
+      <Pressable onPress={() => input.current?.focus()} accessibilityLabel={tr("PIN de 6 dígitos")} style={st.pinRow}>
         {Array.from({ length: 6 }, (_, i) => (
           <View key={i} style={[st.pinBox, i < pin.length && st.pinFilled, i === pin.length && !busy && st.pinActive]}>
             <Text style={st.pinDot}>{i < pin.length ? "•" : ""}</Text>
@@ -120,10 +123,10 @@ function PinUnlock() {
         secureTextEntry
         editable={!busy && wait === 0}
         style={st.hiddenInput}
-        accessibilityLabel="PIN"
+        accessibilityLabel={tr("PIN")}
       />
       <View style={st.status}>
-        {busy ? <ActivityIndicator color={C.primary} /> : error ? <Text style={st.error}>{wait > 0 ? `Demasiados intentos. Espera ${wait} s.` : error}</Text> : null}
+        {busy ? <ActivityIndicator color={C.primary} /> : error ? <Text style={st.error}>{wait > 0 ? tr("Demasiados intentos. Espera {s} s.").replace("{s}", String(wait)) : error}</Text> : null}
       </View>
     </View>
   );
@@ -140,22 +143,22 @@ function CreateAccount() {
 
   return (
     <View style={{ gap: 10 }}>
-      <Text style={st.sheetTitle}>Crea tu cuenta</Text>
-      <Text style={st.muted}>Se cifra en este teléfono. Ni nosotros podemos leerla.</Text>
-      <Field label="Nombre o apodo" value={alias} onChangeText={setAlias} autoCapitalize="words" />
-      <Field label="PIN de 6 dígitos" value={p1} onChangeText={(t) => setP1(digits(t))} keyboardType="number-pad" secureTextEntry maxLength={6} />
-      <Field label="Repite el PIN" value={p2} onChangeText={(t) => setP2(digits(t))} keyboardType="number-pad" secureTextEntry maxLength={6} />
-      <Text style={st.warn}>Si olvidas el PIN no se pueden recuperar tus datos.</Text>
+      <Text style={st.sheetTitle}>{tr("Crea tu cuenta")}</Text>
+      <Text style={st.muted}>{tr("Se cifra en este teléfono. Ni nosotros podemos leerla.")}</Text>
+      <Field label={tr("Nombre o apodo")} value={alias} onChangeText={setAlias} autoCapitalize="words" />
+      <Field label={tr("PIN de 6 dígitos")} value={p1} onChangeText={(t) => setP1(digits(t))} keyboardType="number-pad" secureTextEntry maxLength={6} />
+      <Field label={tr("Repite el PIN")} value={p2} onChangeText={(t) => setP2(digits(t))} keyboardType="number-pad" secureTextEntry maxLength={6} />
+      <Text style={st.warn}>{tr("Si olvidas el PIN no se pueden recuperar tus datos.")}</Text>
       {error ? <Text style={st.error}>{error}</Text> : null}
       <Button
-        label={busy ? "Protegiendo…" : "Crear mi espacio"}
+        label={busy ? tr("Protegiendo…") : tr("Crear mi espacio")}
         disabled={busy}
         onPress={async () => {
-          if (!alias.trim()) return setError("Escribe un nombre o apodo.");
-          if (!/^\d{6}$/.test(p1)) return setError("El PIN debe tener 6 números.");
-          if (p1 !== p2) return setError("Los PIN no coinciden.");
+          if (!alias.trim()) return setError(tr("Escribe un nombre o apodo."));
+          if (!/^\d{6}$/.test(p1)) return setError(tr("El PIN debe tener 6 números."));
+          if (p1 !== p2) return setError(tr("Los PIN no coinciden."));
           setBusy(true); setError("");
-          try { await vault.create(alias.trim(), p1); } catch { setError("No se pudo crear la cuenta. Intenta de nuevo."); } finally { setBusy(false); }
+          try { await vault.create(alias.trim(), p1); } catch { setError(tr("No se pudo crear la cuenta. Intenta de nuevo.")); } finally { setBusy(false); }
         }}
       />
     </View>

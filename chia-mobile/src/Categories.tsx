@@ -2,16 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { C, R } from "./theme";
-import { TOPIC_UI } from "./topics";
+import { topicUI } from "./topics";
 import { H2 } from "./ui";
+import { tr } from "./i18n";
 
 // "¿En qué te ayudamos?": cada tarjeta abre el chat con el rol de especialista correspondiente.
 export function Categories() {
   return (
     <View style={{ gap: 12 }}>
-      <H2>¿En qué te ayudamos?</H2>
+      <H2>{tr("¿En qué te ayudamos?")}</H2>
       <View style={st.grid}>
-        {TOPIC_UI.map((x) => (
+        {topicUI().map((x) => (
           <Pressable
             key={x.k}
             accessibilityRole="button"

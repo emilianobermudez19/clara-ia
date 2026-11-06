@@ -1,7 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LogoMark } from "./Logo";
 import { useVault } from "./vault";
+import { LangToggle } from "./LangToggle";
+import { recordQuickExit } from "./wellbeing";
 import { C, R } from "./theme";
+import { tr } from "./i18n";
 
 // Barra superior con "Salir rápido": bloquea Mi espacio, borra la conversación en pantalla y vuelve al acceso.
 export function TopBar() {
@@ -10,11 +13,14 @@ export function TopBar() {
     <View style={st.bar}>
       <View style={st.brand}>
         <LogoMark size={28} />
-        <Text style={st.name}>Chía</Text>
+        <Text style={st.name}>{tr("Chía")}</Text>
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel="Salir rápido" onPress={vault.lock} style={st.exit}>
-        <Text style={st.exitText}>Salir rápido</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <LangToggle />
+      <Pressable accessibilityRole="button" accessibilityLabel={tr("Salir rápido")} onPress={() => { void recordQuickExit(); vault.lock(); }} style={st.exit}>
+        <Text style={st.exitText}>{tr("Salir rápido")}</Text>
       </Pressable>
+      </View>
     </View>
   );
 }

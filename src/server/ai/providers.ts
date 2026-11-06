@@ -20,7 +20,7 @@ import { mockAnswer } from "@/lib/mock-answers";
 /** Respuestas clínicas: poca aleatoriedad y longitud acotada (también controla el costo). */
 export const GENERATION = { temperature: 0.3, maxOutputTokens: 700 } as const;
 
-export type ProviderName = "openai" | "groq" | "openrouter" | "lovable" | "openai-compatible" | "mock";
+export type ProviderName = "openai" | "groq" | "xai" | "openrouter" | "lovable" | "openai-compatible" | "mock";
 
 export interface ChatProvider {
   name: ProviderName;
@@ -34,6 +34,7 @@ export interface ChatProvider {
 export const PRESETS = {
   openai: { baseURL: "https://api.openai.com/v1", keyVar: "OPENAI_API_KEY", model: "gpt-4o-mini" },
   groq: { baseURL: "https://api.groq.com/openai/v1", keyVar: "GROQ_API_KEY", model: "llama-3.3-70b-versatile" },
+  xai: { baseURL: "https://api.x.ai/v1", keyVar: "XAI_API_KEY", model: "grok-3-mini" },
   openrouter: { baseURL: "https://openrouter.ai/api/v1", keyVar: "OPENROUTER_API_KEY", model: "meta-llama/llama-3.3-70b-instruct" },
 } as const;
 
@@ -88,6 +89,7 @@ export function pickProviderName(env: Env): ProviderName {
   const has: Record<ProviderName, boolean> = {
     openai: !!env["OPENAI_API_KEY"],
     groq: !!env["GROQ_API_KEY"],
+    xai: !!env["XAI_API_KEY"],
     openrouter: !!env["OPENROUTER_API_KEY"],
     lovable: !!env["LOVABLE_API_KEY"],
     "openai-compatible": !!(env["CHIA_AI_BASE_URL"] && env["CHIA_AI_MODEL"]),
@@ -95,7 +97,7 @@ export function pickProviderName(env: Env): ProviderName {
   };
   const forced = env["CHIA_AI_PROVIDER"] as ProviderName | undefined;
   if (forced && forced in has) return has[forced] ? forced : "mock";
-  const order: ProviderName[] = ["openai", "groq", "openrouter", "lovable", "openai-compatible"];
+  const order: ProviderName[] = ["openai", "groq", "xai", "openrouter", "lovable", "openai-compatible"];
   return order.find((n) => has[n]) ?? "mock"; // nunca dejar a la persona sin respuesta
 }
 
@@ -104,6 +106,7 @@ export function pickProvider(env: Env): ChatProvider {
   switch (name) {
     case "openai":
     case "groq":
+    case "xai":
     case "openrouter": {
       const preset = PRESETS[name];
       return openaiCompatible(name, preset.baseURL, env["CHIA_AI_MODEL"] ?? preset.model, env[preset.keyVar]!);

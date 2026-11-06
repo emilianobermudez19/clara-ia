@@ -6,9 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { nextDose } from "../../src/shared/lib/vault";
 import { Categories } from "../../src/Categories";
 import { TopBar } from "../../src/TopBar";
+import { Hotline } from "../../src/Hotline";
 import { useVault } from "../../src/vault";
-import { DISCLAIMER } from "../../src/topics";
+import { disclaimer } from "../../src/topics";
 import { C, R } from "../../src/theme";
+import { getLang, tr } from "../../src/i18n";
 
 export default function Home() {
   const vault = useVault();
@@ -17,7 +19,7 @@ export default function Home() {
   useEffect(() => { const id = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(id); }, []);
 
   const h = now.getHours();
-  const greet = h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
+  const greet = h < 12 ? tr("Buenos días") : h < 19 ? tr("Buenas tardes") : tr("Buenas noches");
   const next = vault.profile ? nextDose(vault.profile.reminders, now) : null;
 
   // La pregunta viaja como parámetro y el chat la envía sola como primer mensaje.
@@ -35,23 +37,23 @@ export default function Home() {
         <ScrollView contentContainerStyle={st.scroll} keyboardShouldPersistTaps="handled">
           <View style={st.hero}>
             <Text style={st.greet}>{greet}{vault.profile ? `, ${vault.profile.alias}` : ""}</Text>
-            <Text style={st.heroTitle}>¿Cómo te sientes hoy?</Text>
+            <Text style={st.heroTitle}>{tr("¿Cómo te sientes hoy?")}</Text>
             <View style={st.askRow}>
               <TextInput
                 value={q}
                 onChangeText={setQ}
-                placeholder="Escribe tu duda…"
+                placeholder={tr("Escribe tu duda…")}
                 placeholderTextColor={C.muted}
                 returnKeyType="send"
                 onSubmitEditing={ask}
                 style={st.askInput}
-                accessibilityLabel="Escribe tu duda"
+                accessibilityLabel={tr("Escribe tu duda")}
               />
-              <Pressable accessibilityRole="button" accessibilityLabel="Enviar pregunta" onPress={ask} style={st.askBtn}>
+              <Pressable accessibilityRole="button" accessibilityLabel={tr("Enviar pregunta")} onPress={ask} style={st.askBtn}>
                 <Ionicons name="arrow-forward" size={22} color="#FFFFFF" />
               </Pressable>
             </View>
-            <Text style={st.heroNote}>{vault.profile ? "Tu sesión está protegida con tu PIN." : "Consulta Express: anónima, se borra al salir."}</Text>
+            <Text style={st.heroNote}>{vault.profile ? tr("Tu sesión está protegida con tu PIN.") : tr("Consulta Express: anónima, se borra al salir.")}</Text>
           </View>
 
           {vault.profile ? (
@@ -59,9 +61,9 @@ export default function Home() {
               <View style={st.rowIcon}><Ionicons name="alarm" size={22} color={C.primaryDark} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={st.rowTitle}>
-                  {next ? `Próxima toma: ${next.reminder.name} a las ${next.at.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}` : "Sin recordatorios activos"}
+                  {next ? tr("Próxima toma: {n} a las {h}").replace("{n}", next.reminder.name).replace("{h}", next.at.toLocaleTimeString(getLang() === "en" ? "en-US" : "es-MX", { hour: "2-digit", minute: "2-digit" })) : tr("Sin recordatorios activos")}
                 </Text>
-                <Text style={st.rowSub}>Recordatorios de medicamentos</Text>
+                <Text style={st.rowSub}>{tr("Recordatorios de medicamentos")}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={C.muted} />
             </Pressable>
@@ -69,8 +71,8 @@ export default function Home() {
             <Pressable onPress={() => vault.setExpress(false)} style={st.row}>
               <View style={st.rowIcon}><Ionicons name="lock-closed" size={22} color={C.primaryDark} /></View>
               <View style={{ flex: 1 }}>
-                <Text style={st.rowTitle}>Crea tu espacio o entra con tu PIN</Text>
-                <Text style={st.rowSub}>Ficha médica, vacunas y recordatorios, cifrados en tu teléfono.</Text>
+                <Text style={st.rowTitle}>{tr("Crea tu espacio o entra con tu PIN")}</Text>
+                <Text style={st.rowSub}>{tr("Ficha médica, vacunas y recordatorios, cifrados en tu teléfono.")}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={C.muted} />
             </Pressable>
@@ -78,11 +80,13 @@ export default function Home() {
 
           <Categories />
 
+          <Hotline compact />
+
           <Pressable onPress={() => router.push("/espacio")} style={[st.row, { backgroundColor: C.leafBg, borderColor: C.leafBg }]}>
             <View style={[st.rowIcon, { backgroundColor: C.card }]}><Ionicons name="medical" size={22} color={C.leaf} /></View>
             <View style={{ flex: 1 }}>
-              <Text style={[st.rowTitle, { color: "#1F4A33" }]}>Consulta con especialista</Text>
-              <Text style={[st.rowSub, { color: "#2F4A3A" }]}>Solicita una consulta con médicos aliados.</Text>
+              <Text style={[st.rowTitle, { color: "#1F4A33" }]}>{tr("Consulta con especialista")}</Text>
+              <Text style={[st.rowSub, { color: "#2F4A3A" }]}>{tr("Solicita una consulta con médicos aliados.")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={C.leaf} />
           </Pressable>
@@ -90,13 +94,13 @@ export default function Home() {
           <Pressable onPress={() => router.push("/guias")} style={st.row}>
             <View style={st.rowIcon}><Ionicons name="book" size={22} color={C.primaryDark} /></View>
             <View style={{ flex: 1 }}>
-              <Text style={st.rowTitle}>Guías, medicamentos y herbolaria</Text>
-              <Text style={st.rowSub}>Ilustradas, sin dosis y con advertencias.</Text>
+              <Text style={st.rowTitle}>{tr("Guías, medicamentos y herbolaria")}</Text>
+              <Text style={st.rowSub}>{tr("Ilustradas, sin dosis y con advertencias.")}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={C.muted} />
           </Pressable>
 
-          <Text style={st.disclaimer}>{DISCLAIMER}</Text>
+          <Text style={st.disclaimer}>{disclaimer()}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

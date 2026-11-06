@@ -62,6 +62,20 @@ export interface TeleRequest {
   status: "pending";
 }
 
+/** Seguro médico de la persona. La foto de la credencial se guarda cifrada como todo lo demás. */
+export interface Insurance {
+  /** private: seguro privado · public: seguridad social (IMSS, ISSSTE…) · none: sin seguro · "": sin responder */
+  kind: "private" | "public" | "none" | "";
+  insurer: string;
+  policyNumber: string;
+  phone: string;
+  validUntil: string; // AAAA-MM-DD
+  /** Foto de la credencial (JPEG en base64, reducida). */
+  cardPhoto?: string;
+}
+
+export const emptyInsurance = (): Insurance => ({ kind: "", insurer: "", policyNumber: "", phone: "", validUntil: "" });
+
 export interface Profile {
   alias: string;
   bloodType: BloodType;
@@ -73,6 +87,7 @@ export interface Profile {
   reminders: Reminder[];
   teleRequests: TeleRequest[];
   vaccines: Vaccine[];
+  insurance: Insurance;
 }
 
 export interface SealedVault {
@@ -84,7 +99,7 @@ export interface SealedVault {
 
 export const emptyProfile = (alias: string): Profile => ({
   alias, bloodType: "unknown", allergies: "", medications: "", conditions: "", symptoms: [],
-  consultations: [], reminders: [], teleRequests: [], vaccines: [],
+  consultations: [], reminders: [], teleRequests: [], vaccines: [], insurance: emptyInsurance(),
 });
 
 /** Completa fichas guardadas con versiones anteriores (sin consultas, recordatorios, etc.). */

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { GUIDES } from "./shared/content/guides";
 import { Illo } from "./Illustrations";
 import { C, R } from "./theme";
+import { getLang } from "./i18n";
 
 // Guía visual dentro de una respuesta: solo piezas de la biblioteca revisada.
 export function ChatMedia({ id }: { id: string }) {
@@ -9,10 +10,10 @@ export function ChatMedia({ id }: { id: string }) {
   if (!g) return null;
   const stepIllos = g.illos && g.illos.length > 1 ? g.illos : undefined;
   return (
-    <View style={st.box} accessible accessibilityLabel={g.t.es}>
+    <View style={st.box} accessible accessibilityLabel={g.t[getLang()]}>
       <View style={st.head}>
         {g.illos?.[0] ? <View style={st.illo}><Illo name={g.illos[0]} size={44} /></View> : null}
-        <Text style={st.title}>{g.t.es}</Text>
+        <Text style={st.title}>{g.t[getLang()]}</Text>
       </View>
       {g.steps.map((step, i) => (
         <View key={step.es} style={st.row}>
@@ -21,7 +22,7 @@ export function ChatMedia({ id }: { id: string }) {
           ) : (
             <View style={st.num}><Text style={st.numText}>{i + 1}</Text></View>
           )}
-          <Text style={st.step}>{step.es}</Text>
+          <Text style={st.step}>{step[getLang()]}</Text>
         </View>
       ))}
     </View>

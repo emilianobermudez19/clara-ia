@@ -10,6 +10,7 @@ import { Illo } from "../../src/Illustrations";
 import { TopBar } from "../../src/TopBar";
 import { Segmented } from "../../src/ui";
 import { C, R } from "../../src/theme";
+import { getLang, tr } from "../../src/i18n";
 
 type Section = "sexual" | "meds" | "herbs";
 
@@ -21,7 +22,7 @@ export default function Guias() {
   const needle = strip(q.trim());
   const match = (...t: string[]) => !needle || t.some((x) => strip(x).includes(needle));
 
-  const guides = useMemo(() => GUIDES.filter((g) => match(g.t.es, ...g.steps.map((s) => s.es))), [needle]); // eslint-disable-line react-hooks/exhaustive-deps
+  const guides = useMemo(() => GUIDES.filter((g) => match(g.t.es, g.t.en, ...g.steps.flatMap((s) => [s.es, s.en]))), [needle]); // eslint-disable-line react-hooks/exhaustive-deps
   const meds = useMemo(() => MEDICINES.filter((m) => match(m.name, m.category, m.uses, ...m.brands)), [needle]); // eslint-disable-line react-hooks/exhaustive-deps
   const herbs = useMemo(() => HERBS.filter((h) => match(h.name, h.scientific, h.uses)), [needle]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -29,18 +30,18 @@ export default function Guias() {
     <SafeAreaView style={st.screen} edges={["top", "left", "right"]}>
       <TopBar />
       <ScrollView contentContainerStyle={st.scroll} keyboardShouldPersistTaps="handled">
-        <Text style={st.h1}>Guías</Text>
+        <Text style={st.h1}>{tr("Guías")}</Text>
         <View style={st.search}>
           <Ionicons name="search" size={18} color={C.muted} />
-          <TextInput value={q} onChangeText={setQ} placeholder="Buscar tema, medicamento o planta…" placeholderTextColor={C.muted} style={st.searchInput} accessibilityLabel="Buscar" />
+          <TextInput value={q} onChangeText={setQ} placeholder={tr("Buscar tema, medicamento o planta…")} placeholderTextColor={C.muted} style={st.searchInput} accessibilityLabel={tr("Buscar")} />
         </View>
         <Segmented<Section>
           value={section}
           onChange={setSection}
           options={[
-            { key: "sexual", label: "Salud sexual" },
-            { key: "meds", label: "Medicamentos" },
-            { key: "herbs", label: "Herbolaria" },
+            { key: "sexual", label: tr("Salud sexual") },
+            { key: "meds", label: tr("Medicamentos") },
+            { key: "herbs", label: tr("Herbolaria") },
           ]}
         />
 
@@ -48,7 +49,7 @@ export default function Guias() {
 
         {section === "meds" && (
           <>
-            <Text style={st.notice}>Información general, sin dosis. Para tomar cualquier medicamento: Consulta a tu médico o farmacéutico para la dosis exacta.</Text>
+            <Text style={st.notice}>{tr("Información general, sin dosis. Para tomar cualquier medicamento: Consulta a tu médico o farmacéutico para la dosis exacta.")}</Text>
             {meds.map((m) => <MedCard key={m.id} m={m} />)}
           </>
         )}
@@ -61,12 +62,12 @@ export default function Guias() {
         )}
 
         {((section === "sexual" && !guides.length) || (section === "meds" && !meds.length) || (section === "herbs" && !herbs.length)) && (
-          <Text style={st.muted}>Sin resultados. Prueba con otra palabra o pregúntale a Chía.</Text>
+          <Text style={st.muted}>{tr("Sin resultados. Prueba con otra palabra o pregúntale a Chía.")}</Text>
         )}
 
         <Pressable onPress={() => router.push({ pathname: "/chat", params: { q: q.trim() || "Tengo una duda", n: String(Date.now()) } })} style={st.ask}>
           <Ionicons name="chatbubble-ellipses" size={20} color="#FFFFFF" />
-          <Text style={st.askText}>¿No encuentras algo? Pregúntale a Chía</Text>
+          <Text style={st.askText}>{tr("¿No encuentras algo? Pregúntale a Chía")}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -82,7 +83,7 @@ function GuideCard({ g }: { g: Guide }) {
         {g.illos?.[0] ? <View style={st.illo}><Illo name={g.illos[0]} size={56} /></View> : null}
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={st.tag}>Guía · {g.min} min</Text>
-          <Text style={st.title}>{g.t.es}</Text>
+          <Text style={st.title}>{g.t[getLang()]}</Text>
         </View>
         <Ionicons name={open ? "chevron-up" : "chevron-down"} size={20} color={C.muted} />
       </Pressable>
@@ -95,18 +96,18 @@ function GuideCard({ g }: { g: Guide }) {
               ) : (
                 <View style={st.num}><Text style={st.numText}>{i + 1}</Text></View>
               )}
-              <Text style={st.stepText}>{s.es}</Text>
+              <Text style={st.stepText}>{s[getLang()]}</Text>
             </View>
           ))}
           {g.sources?.length ? (
             <View style={st.sources}>
-              <Text style={st.muted}>Fuentes:</Text>
+              <Text style={st.muted}>{tr("Fuentes:")}</Text>
               {g.sources.map((s) => (
                 <Pressable key={s.url} onPress={() => void Linking.openURL(s.url)} accessibilityRole="link"><Text style={st.link}>{s.label}</Text></Pressable>
               ))}
             </View>
           ) : null}
-          <Text style={st.muted}>Revisión clínica pendiente.</Text>
+          <Text style={st.muted}>{tr("Revisión clínica pendiente.")}</Text>
         </View>
       )}
     </View>
@@ -131,13 +132,13 @@ function MedCard({ m }: { m: Medicine }) {
       </Pressable>
       {open && (
         <View style={{ gap: 8 }}>
-          <Row label="Para qué se usa" value={m.uses} />
-          <Row label="Marcas comunes" value={m.brands.join(", ")} />
-          <Row label="No usar si" value={m.contraindications} warn />
+          <Row label={tr("Para qué se usa")} value={m.uses} />
+          <Row label={tr("Marcas comunes")} value={m.brands.join(", ")} />
+          <Row label={tr("No usar si")} value={m.contraindications} warn />
           <Text style={st.notice}>
             {m.access === "otc"
-              ? "Venta libre: sigue la etiqueta. Consulta a tu médico o farmacéutico para la dosis exacta."
-              : "Requiere receta: tómalo solo como te lo indicó tu médico. Chía no da dosis ni cambia tratamientos."}
+              ? tr("Venta libre: sigue la etiqueta. Consulta a tu médico o farmacéutico para la dosis exacta.")
+              : tr("Requiere receta: tómalo solo como te lo indicó tu médico. Chía no da dosis ni cambia tratamientos.")}
           </Text>
         </View>
       )}
@@ -161,10 +162,10 @@ function HerbCard({ h }: { h: Herb }) {
       {h.caution !== "normal" && <Text style={[st.caution, danger && { color: C.danger }]}>{HERB_CAUTION_LABEL[h.caution]}</Text>}
       {open && (
         <View style={{ gap: 8 }}>
-          <Row label="Usos tradicionales" value={h.uses} />
-          <Row label="No usar si" value={h.contraindications} warn />
-          <Row label="Interacciones con medicamentos" value={h.interactions} warn />
-          <Row label="Dónde conseguirla" value={h.availability} />
+          <Row label={tr("Usos tradicionales")} value={h.uses} />
+          <Row label={tr("No usar si")} value={h.contraindications} warn />
+          <Row label={tr("Interacciones con medicamentos")} value={h.interactions} warn />
+          <Row label={tr("Dónde conseguirla")} value={h.availability} />
         </View>
       )}
     </View>

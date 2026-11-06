@@ -7,15 +7,17 @@ import { detectCrisis, HELPLINES } from "../../src/shared/lib/crisis";
 import { splitMedia } from "../../src/shared/lib/media";
 import { isTopic, type Topic } from "../../src/shared/lib/topics";
 import { healthContextFrom, newId, upsertConsultation } from "../../src/shared/lib/vault";
-import { aiMode, askChia, type Turn } from "../../src/api";
+import { aiMode, aiProviderLabel, askChia, getAiStatus, testAi, type AiStatus, type Turn } from "../../src/api";
+import { getLang } from "../../src/i18n";
 import { ChatMedia } from "../../src/ChatMedia";
 import { RichText } from "../../src/RichText";
 import { TopBar } from "../../src/TopBar";
-import { DISCLAIMER, TOPIC_UI } from "../../src/topics";
+import { disclaimer, topicUI } from "../../src/topics";
 import { useVault } from "../../src/vault";
 import { C, R } from "../../src/theme";
+import { tr } from "../../src/i18n";
 
-const SUGGESTIONS = ["Se rompió el condón", "¿Qué método me conviene?", "Tengo fiebre desde ayer", "¿Qué es la PrEP?"];
+const suggestions = () => [tr("Se rompió el condón"), tr("¿Qué método me conviene?"), tr("Tengo fiebre desde ayer"), tr("¿Qué es la PrEP?")];
 
 export default function Chat() {
   const vault = useVault();
@@ -29,6 +31,10 @@ export default function Chat() {
   const [save, setSave] = useState(false);
   const [useRecord, setUseRecord] = useState(false);
   const consultId = useRef(newId());
+  const [ai, setAi] = useState<AiStatus>(getAiStatus());
+  const [testing, setTesting] = useState(false);
+  const runTest = async () => { setTesting(true); setAi(await testAi()); setTesting(false); };
+  useEffect(() => { if (aiMode !== "demo") void runTest(); }, []);
   const scroll = useRef<ScrollView>(null);
 
   // `base` permite empezar una conversación nueva sin depender del estado anterior.
@@ -42,12 +48,13 @@ export default function Chat() {
     if (detectCrisis(text)) setCrisisAt((c) => [...c, history.length - 1]);
     setBusy(true);
     const health = useRecord && vault.profile ? healthContextFrom(vault.profile) : null;
-    const reply = await askChia({ history, mode, topic: activeTopic, health });
+    const reply = await askChia({ history, mode, topic: activeTopic, health, lang: getLang() });
+    setAi(getAiStatus());
     const full: Turn[] = [...history, { role: "assistant", text: reply }];
     setTurns(full);
     setBusy(false);
     if (save && vault.profile) {
-      const title = full.find((t) => t.role === "user")?.text.slice(0, 60) ?? "Consulta";
+      const title = full.find((t) => t.role === "user")?.text.slice(0, 60) ?? tr("Consulta");
       await vault.update((p) => ({ ...p, consultations: upsertConsultation(p.consultations, { id: consultId.current, date: new Date().toISOString(), title, turns: full }) }));
     }
   };
@@ -61,22 +68,22 @@ export default function Chat() {
     setCrisisAt([]);
     consultId.current = newId();
     setTopic(tp);
-    const first = params.q ?? TOPIC_UI.find((x) => x.k === tp)?.start ?? "";
+    const first = params.q ?? topicUI().find((x) => x.k === tp)?.start ?? "";
     router.setParams({ q: undefined, topic: undefined, n: undefined });
     void send(first, tp, []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.n]);
 
-  const topicLabel = topic ? TOPIC_UI.find((x) => x.k === topic)?.label : null;
+  const topicLabel = topic ? topicUI().find((x) => x.k === topic)?.label : null;
 
   return (
     <SafeAreaView style={st.screen} edges={["top", "left", "right"]}>
       <TopBar />
       <View style={st.controls}>
-        <View style={st.modeRow} accessibilityRole="radiogroup" accessibilityLabel="Tipo de lenguaje">
+        <View style={st.modeRow} accessibilityRole="radiogroup" accessibilityLabel={tr("Tipo de lenguaje")}>
           {(["easy", "technical"] as const).map((m) => (
             <Pressable key={m} accessibilityRole="radio" accessibilityState={{ checked: mode === m }} onPress={() => setMode(m)} style={[st.mode, mode === m && st.modeOn]}>
-              <Text style={[st.modeText, mode === m && { color: "#FFFFFF" }]}>{m === "easy" ? "Fácil" : "Técnico"}</Text>
+              <Text style={[st.modeText, mode === m && { color: "#FFFFFF" }]}>{m === "easy" ? tr("Fácil") : tr("Técnico")}</Text>
             </Pressable>
           ))}
         </View>
@@ -86,26 +93,26 @@ export default function Chat() {
       {vault.profile ? (
         <View style={st.toggles}>
           <View style={st.toggle}>
-            <Switch value={save} onValueChange={setSave} trackColor={{ true: C.primary, false: C.border }} accessibilityLabel="Guardar en Mi espacio" />
-            <Text style={st.toggleText}>Guardar en Mi espacio</Text>
+            <Switch value={save} onValueChange={setSave} trackColor={{ true: C.primary, false: C.border }} accessibilityLabel={tr("Guardar en Mi espacio")} />
+            <Text style={st.toggleText}>{tr("Guardar en Mi espacio")}</Text>
           </View>
           <View style={st.toggle}>
-            <Switch value={useRecord} onValueChange={setUseRecord} trackColor={{ true: C.primary, false: C.border }} accessibilityLabel="Usar mi ficha" />
-            <Text style={st.toggleText}>Usar mi ficha</Text>
+            <Switch value={useRecord} onValueChange={setUseRecord} trackColor={{ true: C.primary, false: C.border }} accessibilityLabel={tr("Usar mi ficha")} />
+            <Text style={st.toggleText}>{tr("Usar mi ficha")}</Text>
           </View>
         </View>
       ) : (
-        <Text style={st.temp}>Conversación temporal · se borra al salir</Text>
+        <Text style={st.temp}>{tr("Conversación temporal · se borra al salir")}</Text>
       )}
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}>
         <ScrollView ref={scroll} contentContainerStyle={st.list} onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: true })} keyboardShouldPersistTaps="handled">
           {turns.length === 0 && (
             <View style={{ gap: 12 }}>
-              <Text style={st.hello}>¿Qué te gustaría saber?</Text>
-              <Text style={st.muted}>Soy un asistente de IA. No guardo tu conversación ni te pido datos personales.</Text>
+              <Text style={st.hello}>{tr("¿Qué te gustaría saber?")}</Text>
+              <Text style={st.muted}>{tr("Soy un asistente de IA. No guardo tu conversación ni te pido datos personales.")}</Text>
               <View style={st.chips}>
-                {SUGGESTIONS.map((sug) => (
+                {suggestions().map((sug) => (
                   <Pressable key={sug} onPress={() => void send(sug)} style={st.chip}><Text style={st.chipText}>{sug}</Text></Pressable>
                 ))}
               </View>
@@ -123,7 +130,7 @@ export default function Chat() {
               )}
               {crisisAt.includes(i) && (
                 <View style={st.crisis}>
-                  <Text style={st.crisisTitle}>No estás sola/o. Hay personas listas para ayudarte ahora, gratis:</Text>
+                  <Text style={st.crisisTitle}>{tr("No estás sola/o. Hay personas listas para ayudarte ahora, gratis:")}</Text>
                   {HELPLINES.map((h) => (
                     <Pressable key={h.name} onPress={() => void Linking.openURL(h.href)} style={st.helpline}>
                       <Text style={st.helplineName}>{h.name}</Text>
@@ -134,25 +141,40 @@ export default function Chat() {
               )}
             </View>
           ))}
-          {busy && <View style={st.typing}><ActivityIndicator color={C.primary} /><Text style={st.muted}>Chía está escribiendo…</Text></View>}
-          {aiMode === "demo" && turns.length > 0 && <Text style={st.demo}>Modo demostración: agrega EXPO_PUBLIC_GROQ_API_KEY en chia-mobile/.env para usar la IA real.</Text>}
+          {busy && <View style={st.typing}><ActivityIndicator color={C.primary} /><Text style={st.muted}>{tr("Chía está escribiendo…")}</Text></View>}
+          {!ai.ok && (
+            <View style={st.aiWarn}>
+              <Text style={st.aiWarnTitle}>{tr("La IA no está conectada: estás viendo respuestas de demostración.")}</Text>
+              <Text style={st.aiWarnText}>
+                {ai.detail === "no-key"
+                  ? tr("No se encontró ninguna clave. Crea chia-mobile/.env con EXPO_PUBLIC_GROQ_API_KEY=tu_clave y reinicia con: npx expo start --tunnel -c")
+                  : ai.detail}
+              </Text>
+              {aiMode !== "demo" && (
+                <Pressable onPress={() => void runTest()} style={st.aiRetry} accessibilityRole="button">
+                  <Text style={st.aiRetryText}>{testing ? tr("Probando…") : tr("Probar conexión de nuevo")}</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
+          {ai.ok && turns.length === 0 && <Text style={st.demo}>{tr("IA conectada")}: {aiProviderLabel}</Text>}
         </ScrollView>
 
         <View style={st.inputBar}>
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="Escribe tu duda, sin miedo…"
+            placeholder={tr("Escribe tu duda, sin miedo…")}
             placeholderTextColor={C.muted}
             multiline
             style={st.input}
-            accessibilityLabel="Escribe tu mensaje"
+            accessibilityLabel={tr("Escribe tu mensaje")}
           />
-          <Pressable accessibilityRole="button" accessibilityLabel="Enviar" disabled={busy || !input.trim()} onPress={() => void send(input)} style={[st.send, (busy || !input.trim()) && { opacity: 0.4 }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel={tr("Enviar")} disabled={busy || !input.trim()} onPress={() => void send(input)} style={[st.send, (busy || !input.trim()) && { opacity: 0.4 }]}>
             <Ionicons name="arrow-up" size={22} color="#FFFFFF" />
           </Pressable>
         </View>
-        <Text style={st.disclaimer}>{DISCLAIMER}</Text>
+        <Text style={st.disclaimer}>{disclaimer()}</Text>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -185,6 +207,11 @@ const st = StyleSheet.create({
   helplineName: { fontSize: 15, fontWeight: "800", color: C.ink },
   typing: { flexDirection: "row", alignItems: "center", gap: 8 },
   demo: { fontSize: 12, color: C.muted, textAlign: "center" },
+  aiWarn: { borderRadius: R.md, backgroundColor: "#FBF3E6", padding: 12, gap: 6 },
+  aiWarnTitle: { fontSize: 14, fontWeight: "800", color: C.ink },
+  aiWarnText: { fontSize: 13, lineHeight: 18, color: C.ink },
+  aiRetry: { alignSelf: "flex-start", minHeight: 40, justifyContent: "center", paddingHorizontal: 14, borderRadius: R.pill, backgroundColor: C.lavender },
+  aiRetryText: { fontSize: 13, fontWeight: "800", color: C.primaryDark },
   inputBar: { flexDirection: "row", alignItems: "flex-end", gap: 8, paddingHorizontal: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.card },
   input: { flex: 1, minHeight: 48, maxHeight: 120, borderRadius: 24, borderWidth: 1.5, borderColor: C.lavenderMid, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, fontSize: 16, color: C.ink, backgroundColor: C.bg },
   send: { width: 48, height: 48, borderRadius: 24, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" },
